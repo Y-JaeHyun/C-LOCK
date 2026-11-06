@@ -262,7 +262,7 @@ button.item:hover { border-color: var(--gold); }
     <h1>TIME<em>CASINO</em></h1>
     <div class="tag">쉬는 시간의 내기</div>
     <p>학교는 공부만 하던 곳이라고 기억했다. 그런데 쉬는 시간 종이 울리면 책상 위는 순식간에 판이 됐다. 묵찌빠, 카드 한 장, 별것 아닌 내기에 목숨 걸던 10분. 그 기억이 낯선 카지노가 되어 눈앞에 펼쳐졌다.</p>
-    <p>방 곳곳에 단서가 흩어져 있다. 자물쇠는 하나씩 차례로 깨어나고, 열 때마다 다음 장치에 불이 들어온다. 어떤 단서가 어느 자물쇠의 짝인지는 스스로 알아내야 한다.</p>
+    <p>방 곳곳에 단서 여섯 개와 자물쇠 여섯 개가 흩어져 있다. 어떤 단서가 어느 자물쇠의 짝인지, 무엇부터 열지는 스스로 정해야 한다. 자물쇠를 모두 열면 출구가 열린다.</p>
     <div class="facts">
       <div><b>6</b><span>자물쇠</span></div>
       <div><b>60:00</b><span>제한 시간</span></div>
@@ -282,7 +282,7 @@ const TAU = Math.PI * 2;
 const AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const TIME_LIMIT = 60 * 60;
 const HINT_LIMIT = 5;
-const REACH = 4.2;
+const REACH = 4.6;
 
 /* ------------------------------------------------------------------ data */
 function hash(s) { let x = 0x811c9dc5; for (const c of ('bs5:' + s)) { x ^= c.charCodeAt(0); x = Math.imul(x, 0x01000193) >>> 0; } return x.toString(36); }
@@ -300,27 +300,22 @@ const LOCKS = [
   { id: 'L5', no: 5, name: '홀덤 테이블 금고', type: '숫자 키패드', mech: 'keypad', set: '0123456789', hash: 'wmceji', related: 'holdem',
     hints: ['출구 옆 「인디언 홀덤 규칙」 명판과 짝입니다.', '가려진 공유 카드에 1~10을 하나씩 넣어 보세요. 내가 이길 수 있는 내 카드가 딱 1개인 경우와 딱 2개인 경우가 하나씩 나옵니다.'] },
   { id: 'L6', no: 6, name: '1등 경품 진열장', type: '대문자 키패드', mech: 'keypad', set: AZ, hash: '34q76d', related: null,
-    hints: ['연관 단서 없이 단서 하나로 풀립니다. 홀덤 금고에서 나온 「질문지」를 보세요.', '단어를 소리 내어 읽어 보세요. Are는 R처럼 들립니다.'] },
+    hints: ['연관 단서 없이 방 안 단서 하나로 풀립니다. 칵테일 테이블의 「질문지」를 보세요.', '단어를 소리 내어 읽어 보세요. Are는 R처럼 들립니다.'] },
 ];
 const LOCK_BY_ID = Object.fromEntries(LOCKS.map(l => [l.id, l]));
 
-/* Locks open in order: opening lock n plays a short reward and lights up zone n+1, where lock n+1 and its related clue wait.
-   The room's own clues are all out from the start, and nothing says which one pairs with which lock; working that out is the game. */
-const STAGES = [
-  { goal: '구석의 경품 뽑기 기계에 자물쇠가 걸려 있다. 방 안에 흩어진 단서 중 무엇이 필요할까?',
-    title: '경품 캡슐', story: '집게가 저절로 움직이더니 캡슐 하나를 떨어뜨렸다. 안에는 금색 카지노 출입 칩. 칩을 쥐자 벨벳 로프가 바닥으로 내려가고, 건너편 TIME CASINO에 불이 들어온다.' },
-  { goal: '카지노 어딘가의 슬롯머신 하나에 자물쇠가 달려 있다.',
-    title: '잭팟', story: '릴이 멈추자 동전이 쏟아진다. 동전 사이에 블랙잭 딜러 카드 한 장이 섞여 있다. 어딘가에서 딸깍, 새 조명이 켜진다.' },
-  { goal: '딜러 카드가 가리키는 테이블에 자물쇠가 있다.',
-    title: '굴러 나온 룰렛 공', story: '칩 트레이가 열리자 하얀 룰렛 공 하나가 굴러 나온다. 공이 멈춘 곳 위로 조명이 떨어진다.' },
-  { goal: '룰렛 공이 굴러간 곳, 칩 보관함이 잠겨 있다.',
-    title: '보관함 속 칩', story: '보관함 안에는 "HOLD\'EM" 이라고 새겨진 칩 하나뿐.' },
-  { goal: '칩에 새겨진 글자의 테이블. 화면 옆 금고가 잠겨 있다.',
-    title: '금고 속 질문지', story: '금고 안에는 칩 대신 접힌 종이 한 장. 동시에 어딘가에서 붉은 빛이 새어 나온다.', give: 'b_quiz' },
-  { goal: '붉게 빛나는 1등 경품 진열장. 마지막 자물쇠다.',
-    title: '1등 경품', story: '진열장이 열리고 루비를 손에 쥐었다. 출구 위 램프 여섯 개가 모두 초록색으로 바뀌었다.' },
-];
+/* Every lock and clue is out from the start and locks open in any order; matching clue to lock is the game.
+   Opening a lock plays a short reward and lights one of the six lamps over the exit. */
+const REWARDS = {
+  L1: { title: '경품 캡슐', story: '집게가 저절로 움직이더니 캡슐 하나를 떨어뜨렸다. 안에는 금색 칩 한 개.' },
+  L2: { title: '잭팟', story: '릴이 멈추자 동전이 와르르 쏟아진다.' },
+  L3: { title: '굴러 나온 룰렛 공', story: '칩 트레이가 열리자 하얀 룰렛 공 하나가 굴러 나온다.' },
+  L4: { title: '보관함 속 칩', story: '보관함 뚜껑이 열리고, 안에 쌓여 있던 칩이 반짝인다.' },
+  L5: { title: '열린 금고', story: '묵직한 금고 문이 열렸다. 안에는 칩 다발이 가득하다.' },
+  L6: { title: '1등 경품', story: '진열장이 열리고 루비를 손에 쥐었다.' },
+};
 const FINAL_GOAL = '출구 문이 풀렸습니다. 출구로 가서 문을 여세요.';
+const openGoal = left => `잠긴 자물쇠 ${left}개. 무엇부터 열지는 자유입니다. 빨간 자물쇠 표시를 찾아, 방 안 단서 중 짝이 되는 것으로 여세요. (L 키: 자물쇠 목록)`;
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const card = (r, cls = '') => `<span class="pc ${cls}">${r}</span>`;
@@ -359,7 +354,7 @@ const CLUES = {
       <li><span>④</span><span>승자가 팟을 모두 가져간다. 폴드하면 상대가 즉시 이긴다.</span></li>
       <li><span>⑤</span><span>스트레이트·트리플을 들고 폴드하면 칩 10개, 더블이면 칩 5개를 추가로 지급한다.</span></li>
     </ol></div>` },
-  b_quiz: { title: '질문지', where: '홀덤 테이블 금고 안', html: () => `
+  b_quiz: { title: '질문지', where: '게임룸 · 칵테일 테이블', html: () => `
     <div class="paper quiz"><h3>질문지</h3>1. Are<br>2. You<br>3. Be<br>4. Why</div>` },
 };
 
@@ -415,7 +410,7 @@ const colliders = [];
 /* Lighting zones: zone n holds the lights and glowing surfaces around stage n. Zone 1 (game room) starts lit;
    the rest stay dark until their stage begins, then flicker on like neon. */
 const ZONES = {};
-function zone(n) { return ZONES[n] || (ZONES[n] = { on: n === 1, t: n === 1 ? 1 : 0, lights: [], mats: [] }); }
+function zone(n) { return ZONES[n] || (ZONES[n] = { on: true, t: 1, lights: [], mats: [] }); }
 function zl(n, l) { l.userData.to = l.intensity; zone(n).lights.push(l); return l; }
 function zm(n, mat) { zone(n).mats.push({ m: mat, to: mat.color.clone(), from: mat.color.clone().multiplyScalar(0.1) }); return mat; }
 function zg(n, mat) { zone(n).mats.push({ m: mat, op: mat.opacity }); return mat; }
@@ -426,7 +421,7 @@ function applyZone(z, flick = 1) {
 }
 function activateZone(n) { const z = ZONES[n]; if (z && !z.on) z.on = true; }
 const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
-/* where the focus light points during each stage (index = locks already opened) */
+/* where the focus light points: 0-5 = the lock just opened (L1-L6), 6 = exit door, 7 = room centre at the start */
 const FOCUS = [
   [V3(-8.6, 5.6, -5.4), V3(-10.5, 1.0, -7.5)],
   [V3(9.0, 5.6, -5.1), V3(11.2, 1.0, -5.1)],
@@ -435,6 +430,7 @@ const FOCUS = [
   [V3(6.3, 5.6, 4.7), V3(7.4, 1.0, 4.7)],
   [V3(-9.0, 5.6, 3.6), V3(-11.2, 1.2, 3.6)],
   [V3(0, 5.6, 6.2), V3(0, 1.3, 8.8)],
+  [V3(2.2, 5.6, 3.6), V3(2.2, 0.9, 1.6)],
 ];
 let focus;
 const M = (color, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.75, metalness: 0.05 }, o));
@@ -526,19 +522,15 @@ function makeInteract(g, kind, id, label, markerH) {
   g.userData.interact = { kind, id, label };
   const iconKind = kind === 'lock' ? 'lock' : kind === 'door' ? 'doorLocked' : kind === 'poster' ? 'poster' : 'clue';
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: ICON[iconKind], transparent: true, toneMapped: false, depthWrite: false }));
-  sp.scale.set(0.26, 0.26, 0.26); sp.position.set(0, markerH, 0); sp.layers.set(1);
+  sp.scale.set(0.26, 0.26, 0.26); sp.position.set(0, markerH, 0); sp.layers.set(1); sp.raycast = () => {};
   g.add(sp);
-  const stage = kind === 'lock' ? LOCK_BY_ID[id].no : 0;
-  const entry = { g, kind, id, label, stage, sprite: sp, baseY: markerH, phase: Math.random() * TAU };
+  const entry = { g, kind, id, label, sprite: sp, baseY: markerH, phase: Math.random() * TAU };
   interactables.push(entry); g.userData.entry = entry;
   return entry;
 }
 function setIcon(entry, kind) { entry.sprite.material.map = ICON[kind]; entry.sprite.material.needsUpdate = true; }
-/* an object only responds once its stage has begun */
-const isActive = e => !e.stage || e.stage <= state.stage + 1;
-/* only the current stage's unfinished objects get the see-through, pulsing marker */
-const isPending = e => e.kind === 'door' ? state.stage >= 6 && !state.finished
-  : e.stage === state.stage + 1 && (e.kind === 'lock' ? !state.solved[e.id] : !state.seen[e.id]);
+/* locked locks (and the exit once it opens) get the see-through, pulsing marker so every lock can be found */
+const isPending = e => e.kind === 'door' ? state.stage >= 6 && !state.finished : e.kind === 'lock' && !state.solved[e.id];
 
 /* padlock & keypad pieces */
 const brass = M(0xc9a13a, { metalness: 0.85, roughness: 0.3 });
@@ -581,11 +573,11 @@ function buildRoom() {
   pl(6, 0xff5070, 0.9, 5, -10.2, 2.4, 3.6);
   const spot = new THREE.SpotLight(0xffe2b0, 1.4, 12, 0.55, 0.5, 1); spot.position.set(2.2, 5.6, 1.6); spot.target.position.set(2.2, 0.9, 1.6); scene.add(spot, spot.target); zl(4, spot);
 
-  /* focus light: one shadow-casting spot that glides to whatever the current stage is about */
+  /* focus light: one shadow-casting spot that glides to the lock just opened, then to the exit */
   focus = new THREE.SpotLight(0xffe7c0, 0, 13, 0.42, 0.6, 1);
   focus.castShadow = true; focus.shadow.mapSize.set(1024, 1024); focus.shadow.bias = -0.0006; focus.shadow.normalBias = 0.02;
   focus.shadow.camera.near = 0.5; focus.shadow.camera.far = 14;
-  focus.position.copy(FOCUS[0][0]); focus.target.position.copy(FOCUS[0][1]); scene.add(focus, focus.target);
+  focus.position.copy(FOCUS[7][0]); focus.target.position.copy(FOCUS[7][1]); scene.add(focus, focus.target);
 
   /* floor */
   const tileT = tex(512, 512, drawTiles, [6, 9]);
@@ -617,7 +609,6 @@ function buildRoom() {
   buildGameRoom();
   buildCasino();
   buildFrontWall();
-  buildRope();
   buildDust();
 
   /* shadows from the focus light; see-through glass and glowing surfaces stay out of it */
@@ -629,27 +620,9 @@ function buildRoom() {
 const glowTexture = (() => { let t; return () => t || (t = tex(256, 256, (g, w, h) => { const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.35, 'rgba(255,255,255,.45)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, w, h); })); })();
 function glow(n, color, w, h, x, y, z, ry = 0, op = 0.5) {
   const mat = new THREE.MeshBasicMaterial({ map: glowTexture(), color, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
-  const m = mesh(new THREE.PlaneGeometry(w, h), mat, x, y, z); m.rotation.y = ry; m.renderOrder = 2;
+  const m = mesh(new THREE.PlaneGeometry(w, h), mat, x, y, z); m.rotation.y = ry; m.renderOrder = 2; m.raycast = () => {};
   if (n > 1) zg(n, mat);
   return m;
-}
-
-/* velvet rope between the game room and the casino; it drops after lock 1 */
-let rope = null;
-function buildRope() {
-  const g = grp(-0.45, 0, 0, 0), velvet = M(0x8a0f1e, { roughness: 0.9 });
-  const zs = []; for (let z = -8.55; z <= 8.6; z += 1.43) zs.push(z);
-  zs.forEach(z => { mesh(cy(0.028, 0.028, 0.95, 10), brass, 0, 0.475, z, g); mesh(new THREE.SphereGeometry(0.05, 12, 10), brass, 0, 0.97, z, g); mesh(cy(0.13, 0.15, 0.04, 18), brass, 0, 0.02, z, g); });
-  for (let i = 0; i < zs.length - 1; i++) { const a = zs[i], b = zs[i + 1]; const c = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 0.9, a), new THREE.Vector3(0, 0.62, (a + b) / 2), new THREE.Vector3(0, 0.9, b)); mesh(new THREE.TubeGeometry(c, 14, 0.026, 6), velvet, 0, 0, 0, g); }
-  const st = tex(512, 260, (c, w, h) => { c.fillStyle = '#1a0606'; c.fillRect(0, 0, w, h); c.strokeStyle = '#c9a13a'; c.lineWidth = 8; c.strokeRect(10, 10, w - 20, h - 20); c.fillStyle = '#e8b64c'; c.font = '62px Limelight, serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('CLOSED', w / 2, 92); c.fillStyle = '#f5e6c8'; c.font = '600 36px "IBM Plex Sans KR", sans-serif'; c.fillText('카지노 출입 칩이 필요합니다', w / 2, 178); });
-  [3.3, -2.4].forEach(z => { const sm = plane(st, 0.62, 0.315, true, { roughness: 0.6 }); sm.position.set(-0.04, 0.78, z); sm.rotation.y = -Math.PI / 2; g.add(sm); });
-  const col = { x0: -0.55, x1: -0.35, z0: -9, z1: 9 }; colliders.push(col);
-  rope = { g, col, t: -1 };
-}
-function dropRope() {
-  if (!rope || rope.t >= 0) return;
-  const i = colliders.indexOf(rope.col); if (i >= 0) colliders.splice(i, 1);
-  rope.t = 0;
 }
 
 /* dust drifting through the light */
@@ -659,7 +632,7 @@ function buildDust() {
   for (let i = 0; i < n; i++) { pos[i * 3] = (r() - 0.5) * 23; pos[i * 3 + 1] = 0.3 + r() * 5.4; pos[i * 3 + 2] = (r() - 0.5) * 17; }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const mat = new THREE.PointsMaterial({ size: 0.035, map: glowTexture(), color: 0xffd9a0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
-  dust = new THREE.Points(geo, mat); scene.add(dust);
+  dust = new THREE.Points(geo, mat); dust.raycast = () => {}; scene.add(dust);
 }
 
 function bulbRow(parent, pts, r = 0.045, n = 1) {
@@ -824,8 +797,11 @@ function buildGameRoom() {
     mesh(cy(0.06, 0.06, 1.0, 12), M(0x2a1d18, { metalness: 0.6 }), 0, 0.5, 0, g);
     mesh(cy(0.3, 0.3, 0.04, 24), M(0x2a1d18, { metalness: 0.6 }), 0, 0.02, 0, g);
     mesh(cy(0.48, 0.48, 0.05, 32), M(0x3c7fc4, { roughness: 0.4 }), 0, 1.03, 0, g);
-    chips(g, 0.12, 1.055, -0.1, 5, 0xd9542b); chips(g, -0.15, 1.055, 0.12, 3, 0x3c7fc4);
+    mesh(bx(0.34, 0.015, 0.46), M(0x8a5a22), 0.02, 1.065, 0.02, g).rotation.y = 0.2;
+    const qz = tex(400, 540, (c, w, h) => { c.fillStyle = '#f3ead6'; c.fillRect(0, 0, w, h); c.fillStyle = '#2b1e16'; c.font = '700 58px Gaegu, cursive'; c.textAlign = 'left'; c.fillText('질문지', 36, 90); c.font = '700 52px Gaegu, cursive'; ['1. Are', '2. You', '3. Be', '4. Why'].forEach((s, i) => c.fillText(s, 50, 190 + i * 88)); });
+    const qm = plane(qz, 0.3, 0.405, true); qm.rotation.x = -Math.PI / 2; qm.rotation.z = -0.2; qm.position.set(0.02, 1.075, 0.02); g.add(qm);
     [[-0.75, 0.2], [0.7, -0.3]].forEach(([x, z]) => { mesh(cy(0.2, 0.2, 0.06, 20), M(0xd9542b), x, 0.75, z, g); mesh(cy(0.03, 0.03, 0.72, 8), M(0x2a1d18), x, 0.37, z, g); });
+    makeInteract(g, 'clue', 'b_quiz', '질문지', 1.55);
     collide(-4.0, 4.9, 1.0, 1.0);
   }
 
@@ -895,6 +871,7 @@ function buildCasino() {
     const calm = plane(cal, 0.48, 0.315, true); calm.position.set(0, 0.42, -0.06); calm.rotation.x = -0.25; box.add(calm);
     mesh(bx(0.04, 0.3, 0.04), M(0x6b3a1a), 0, 0.33, -0.1, box).rotation.x = -0.25;
     makeInteract(box, 'lock', 'L4', '룰렛 테이블 칩 보관함', 0.82);
+    g.userData.proxy = box;
     collide(2.2, 1.6, 4.8, 2.6);
     [[0.8, 3.1, Math.PI], [2.2, 3.15, Math.PI], [3.6, 3.1, Math.PI], [1.4, 0.05, 0], [3.0, 0.05, 0]].forEach(([x, z, r]) => chair(x, z, r));
   }
@@ -1002,6 +979,7 @@ function buildCasino() {
     mesh(cy(0.04, 0.04, 0.03, 16), M(0xc9a13a, { metalness: 0.8 }), -0.1, 0.15, 0.16, safe).rotation.x = Math.PI / 2;
     locks3d.L5 = { keypad: kp };
     makeInteract(dev, 'lock', 'L5', '홀덤 테이블 금고', 1.1);
+    g.userData.proxy = dev;
     collide(7.9, 4.7, 2.6, 2.6);
     [[7.9, 6.25, Math.PI], [9.45, 4.7, -Math.PI / 2], [7.9, 3.15, 0], [6.35, 5.6, Math.PI * 0.75]].forEach(([x, z, r]) => chair(x, z, r));
   }
@@ -1140,7 +1118,7 @@ function openLock(id) {
   if (L.related) markSeen('r_' + L.related);
   const solved = !!state.solved[id];
   const rel = L.related ? `<div class="section-label">연관 단서 · ${esc(RELATED[L.related].title)}</div>${RELATED[L.related].html()}`
-    : `<div class="meta">이 자물쇠에는 연관 단서가 없습니다. 가진 단서만으로 풀어야 합니다.</div>`;
+    : `<div class="meta">이 자물쇠에는 연관 단서가 없습니다. 방 안 단서 하나만으로 풀 수 있습니다.</div>`;
   openModal(`
     <div class="head"><span class="eyebrow">자물쇠 ${L.no} · ${esc(L.type)}</span><h2>${esc(L.name)}</h2>
       <span>${solved ? '<span class="chip ok">열림</span>' : '<span class="chip bad">잠김</span>'}</span></div>
@@ -1242,33 +1220,24 @@ function onSolved(L) {
   doorLamps[L.no - 1].material.color.setHex(0x5fd38d);
   updateHUD();
   if (n === 6) { const d = interactables.find(e => e.id === 'exit'); if (d) setIcon(d, 'door'); }
-  setTimeout(() => openReward(n), 1000);
+  setTimeout(() => openReward(L, n), 1000);
 }
-/* the reward sheet tells what happened and what is next; the next zone lights up as it closes, so the player sees it happen */
-function openReward(n) {
-  const S = STAGES[n - 1];
-  if (S.give) { markSeen(S.give); }
-  openModal(`<div class="head"><span class="eyebrow">자물쇠 ${n} / 6 해제</span><h2>${esc(S.title)}</h2></div>
-    <p class="story">${esc(S.story)}</p>
-    ${S.give ? `<div class="section-label">획득한 단서 · ${esc(CLUES[S.give].title)}</div>${CLUES[S.give].html()}` : ''}
-    <div class="nextgoal"><span>${n < 6 ? `다음 목표 · ${n + 1} / 6` : '마지막'}</span><b>${esc(goalText())}</b></div>
-    <div class="actions"><button class="btn primary" type="button" id="goNext">${n < 6 ? '불이 켜진 곳으로' : '출구로'}</button></div>`, 'reward');
+/* the reward sheet says what happened; the focus light swings to that lock as it closes */
+function openReward(L, n) {
+  const R = REWARDS[L.id];
+  openModal(`<div class="head"><span class="eyebrow">자물쇠 ${n} / 6 해제 · ${esc(L.name)}</span><h2>${esc(R.title)}</h2></div>
+    <p class="story">${esc(R.story)} 출구 위 램프 ${n}개에 초록 불이 들어왔다.</p>
+    <div class="nextgoal"><span>${n < 6 ? '남은 자물쇠' : '마지막'}</span><b>${esc(goalText())}</b></div>
+    <div class="actions"><button class="btn primary" type="button" id="goNext">${n < 6 ? '계속 찾기' : '출구로'}</button></div>`, 'reward');
   $('#goNext').addEventListener('click', () => closeModal());
-  afterClose = () => beginStage(n);
+  afterClose = () => { focusTo = n === 6 ? 6 : L.no - 1; sfx.power(); updateGoal(true); };
 }
-function beginStage(n) {
-  if (n === 1) dropRope();
-  activateZone(n + 1);
-  focusTo = Math.min(n, FOCUS.length - 1);
-  sfx.power();
-  updateGoal(true);
-}
-function goalText() { return state.stage < 6 ? STAGES[state.stage].goal : FINAL_GOAL; }
+function goalText() { return state.stage < 6 ? openGoal(6 - state.stage) : FINAL_GOAL; }
 function placeGoal() { const h = $('#hud'); if (!h.hidden) $('#goal').style.top = Math.round(h.getBoundingClientRect().bottom - 4) + 'px'; }
 addEventListener('resize', placeGoal);
 function updateGoal(flash = false) {
   placeGoal();
-  $('#goalNo').textContent = state.stage < 6 ? `목표 ${state.stage + 1} / 6` : '탈출';
+  $('#goalNo').textContent = state.stage < 6 ? `자물쇠 ${state.stage} / 6 해제` : '탈출';
   $('#goalText').textContent = goalText();
   if (flash) { const g = $('#goal'); g.classList.remove('flash'); void g.offsetWidth; g.classList.add('flash'); }
 }
@@ -1282,9 +1251,9 @@ function tryDoor() {
 }
 
 function locksPanel() {
-  openModal(`<div class="head"><span class="eyebrow">자물쇠 현황</span><h2>${Object.keys(state.solved).length} / 6 해제</h2><span class="meta">자물쇠는 순서대로 하나씩 깨어납니다. 지금 목표: ${esc(goalText())}</span></div>
-    <div class="list">${LOCKS.map(L => { const st = state.solved[L.id] ? 'ok' : L.no === state.stage + 1 ? 'now' : 'later';
-      return `<div class="item"><span class="no">${L.no}</span><span class="t"><span>${st === 'later' ? '???' : esc(L.name)}</span><small>${st === 'later' ? '아직 불이 꺼져 있습니다' : esc(L.type)}</small></span>${st === 'ok' ? '<span class="chip ok">열림</span>' : st === 'now' ? '<span class="chip bad">지금 풀 차례</span>' : '<span class="chip">대기</span>'}</div>`; }).join('')}</div>`);
+  openModal(`<div class="head"><span class="eyebrow">자물쇠 현황</span><h2>${Object.keys(state.solved).length} / 6 해제</h2><span class="meta">순서는 자유입니다. 자물쇠마다 방 안 단서 하나가 짝입니다.</span></div>
+    <div class="list">${LOCKS.map(L => { const ok = state.solved[L.id];
+      return `<div class="item"><span class="no">${L.no}</span><span class="t"><span>${esc(L.name)}</span><small>${esc(L.type)}</small></span>${ok ? '<span class="chip ok">열림</span>' : '<span class="chip bad">잠김</span>'}</div>`; }).join('')}</div>`);
 }
 function notesPanel() {
   const blog = Object.keys(CLUES).filter(k => state.seen[k]);
@@ -1304,8 +1273,8 @@ function notesPanel() {
 }
 function hintsPanel() {
   const left = HINT_LIMIT - state.hintsUsed;
-  openModal(`<div class="head"><span class="eyebrow">힌트</span><h2>남은 힌트 ${left} / ${HINT_LIMIT}</h2><span class="meta">지금까지 깨어난 자물쇠의 힌트만 보입니다. 1단계는 짝이 되는 단서를, 2단계는 푸는 방법을 알려 주며, 한 번 열 때마다 1개를 씁니다.</span></div>
-    <div class="list">${LOCKS.filter(L => L.no <= state.stage + 1).map(L => { const lv = state.hint[L.id] || 0; return `<div class="hintrow"><div class="top"><span><b style="color:var(--gold);font-family:var(--f-mono)">${L.no}</b> · ${esc(L.type)} ${state.solved[L.id] ? '<span class="chip ok">열림</span>' : ''}</span>
+  openModal(`<div class="head"><span class="eyebrow">힌트</span><h2>남은 힌트 ${left} / ${HINT_LIMIT}</h2><span class="meta">자물쇠마다 2단계 힌트가 있습니다. 1단계는 짝이 되는 단서를, 2단계는 푸는 방법을 알려 주며, 한 번 열 때마다 1개를 씁니다.</span></div>
+    <div class="list">${LOCKS.map(L => { const lv = state.hint[L.id] || 0; return `<div class="hintrow"><div class="top"><span><b style="color:var(--gold);font-family:var(--f-mono)">${L.no}</b> · ${esc(L.type)} ${state.solved[L.id] ? '<span class="chip ok">열림</span>' : ''}</span>
       <span class="hb"><button type="button" data-h="${L.id}" data-lv="1" ${lv >= 1 || left <= 0 ? 'disabled' : ''}>1단계</button><button type="button" data-h="${L.id}" data-lv="2" ${lv !== 1 || left <= 0 ? 'disabled' : ''}>2단계</button></span></div>
       ${lv >= 1 ? `<p>${esc(L.hints[0])}</p>` : ''}${lv >= 2 ? `<p>${esc(L.hints[1])}</p>` : ''}</div>`; }).join('')}</div>`);
   $('#sheet').querySelectorAll('[data-h]').forEach(b => b.addEventListener('click', () => {
@@ -1401,7 +1370,7 @@ canvasEl.addEventListener('pointerdown', e => {
   if (!state.started || state.modal) return;
   if (!dragMode && e.pointerType === 'mouse') {
     if (!locked) { requestLock(); return; }
-    if (e.button === 0 && current) tryInteract(current);
+    if (e.button === 0) interactNow();
     return;
   }
   if (look) return;
@@ -1419,7 +1388,7 @@ canvasEl.addEventListener('pointermove', e => {
 const endLook = e => {
   if (!look || look.id !== e.pointerId) return;
   const wasClick = look.moved <= 5; look = null; canvasEl.classList.remove('dragging');
-  if (wasClick && e.type === 'pointerup' && state.started && !state.modal) { const hit = pick(e.clientX, e.clientY); if (hit) tryInteract(hit); }
+  if (wasClick && e.type === 'pointerup' && state.started && !state.modal) { const hit = pickAssist(e.clientX, e.clientY); if (hit) tryInteract(hit); }
 };
 canvasEl.addEventListener('pointerup', endLook);
 canvasEl.addEventListener('pointercancel', endLook);
@@ -1438,7 +1407,7 @@ addEventListener('keydown', e => {
   const k = e.code;
   if (MOVE_CODES.has(k) || k === 'KeyE' || k === 'KeyF' || k === 'Space') e.preventDefault();
   if (e.repeat && (k === 'KeyE' || k === 'KeyF')) return;
-  if (k === 'KeyE' || k === 'KeyF') { if (current) tryInteract(current); return; }
+  if (k === 'KeyE' || k === 'KeyF') { interactNow(); return; }
   if (k === 'KeyN') { sfx.click(); notesPanel(); return; }
   if (k === 'KeyH') { sfx.click(); hintsPanel(); return; }
   if (k === 'KeyL') { sfx.click(); locksPanel(); return; }
@@ -1456,27 +1425,46 @@ if (isTouch) {
   const end = e => { if (joy.id !== e.pointerId) return; joy.id = null; joy.x = joy.y = 0; K.style.transform = ''; };
   J.addEventListener('pointerup', end); J.addEventListener('pointercancel', end);
   function moveJoy(e) { const r = J.getBoundingClientRect(); let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2); const m = Math.hypot(dx, dy), max = r.width / 2 - 10; if (m > max) { dx *= max / m; dy *= max / m; } joy.x = dx / max; joy.y = dy / max; K.style.transform = `translate(${dx}px, ${dy}px)`; }
-  $('#useBtn').addEventListener('click', () => { if (current && !state.modal) tryInteract(current); });
+  $('#useBtn').addEventListener('click', () => { if (!state.modal) interactNow(); });
 }
 
 /* picking */
 const ray = new THREE.Raycaster(); ray.far = 30;
 const ndc = new THREE.Vector2();
+/* first solid thing under one screen point; dust, halos and markers never block (their raycast is switched off).
+   A furniture group can hand its hits to the lock sitting on it (userData.proxy), so clicking the table works too. */
 function pick(cx, cy0) {
   ndc.set((cx / innerWidth) * 2 - 1, -(cy0 / innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, camera);
   const hits = ray.intersectObjects(scene.children, true);
   for (const h of hits) {
-    if (h.object.isSprite) continue;
-    let o = h.object; while (o && !o.userData.interact) o = o.parent;
+    if (h.object.isSprite || h.object.isPoints) continue;
+    let o = h.object;
+    while (o && !o.userData.interact) { if (o.userData.proxy) { o = o.userData.proxy; break; } o = o.parent; }
     return o ? { obj: o, dist: h.distance } : null;
   }
   return null;
 }
+/* aim assist: if the exact centre misses, try a small ring of nearby rays and take the closest thing in reach */
+const ASSIST = [[1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7], [2, 0], [-2, 0], [0, 2], [0, -2], [1.4, 1.4], [-1.4, 1.4], [1.4, -1.4], [-1.4, -1.4]];
+function pickAssist(cx, cy0) {
+  const center = pick(cx, cy0);
+  if (center && center.dist <= REACH) return center;
+  const r = Math.max(10, Math.min(innerWidth, innerHeight) * 0.022);
+  let best = null;
+  for (const [ox, oy] of ASSIST) { const h = pick(cx + ox * r, cy0 + oy * r); if (h && h.dist <= REACH && (!best || h.dist < best.dist)) best = h; }
+  return best || center;
+}
+function aimPick() {
+  /* aim with the latest mouse-look, which may be newer than the last rendered frame */
+  camera.rotation.set(player.pitch, player.yaw, 0); camera.position.x = player.x; camera.position.z = player.z; camera.updateMatrixWorld();
+  const useMouse = dragMode && !isTouch && ptr.mouse && ptr.inCanvas && !look;
+  return useMouse ? pickAssist(ptr.x, ptr.y) : pickAssist(innerWidth / 2, innerHeight / 2);
+}
+/* E, click and the touch button all re-aim at the moment of the press instead of trusting the last hover result */
+function interactNow() { const hit = aimPick(); current = hit; if (hit) tryInteract(hit); }
 let current = null;
 function tryInteract(hit) {
-  const entry = hit.obj.userData.entry;
-  if (entry && !isActive(entry)) { toast('아직 어둠 속에 잠들어 있다. 왼쪽 위 목표를 먼저 따라가 보세요.'); return; }
   if (hit.dist > REACH) { toast('조금 더 가까이 가야 조사할 수 있습니다.'); return; }
   const { kind, id } = hit.obj.userData.interact; sfx.click();
   if (kind === 'clue') openClue(id);
@@ -1487,14 +1475,13 @@ function tryInteract(hit) {
 let pickFrame = 0;
 function updateHover() {
   if (!state.started || state.modal) { $('#prompt').hidden = true; return; }
-  if (++pickFrame % 3) return;
+  if (++pickFrame % 2) return;
   const useMouse = dragMode && !isTouch && ptr.mouse && ptr.inCanvas && !look;
-  const hit = useMouse ? pick(ptr.x, ptr.y) : pick(innerWidth / 2, innerHeight / 2);
+  const hit = aimPick();
   current = hit;
   const pr = $('#prompt');
   if (!hit) { pr.hidden = true; canvasEl.classList.remove('hot'); return; }
   const it = hit.obj.userData.interact, near = hit.dist <= REACH;
-  if (!isActive(hit.obj.userData.entry)) { pr.textContent = '어둠 속에 무언가 있다 · 아직 반응 없음'; pr.classList.add('far'); pr.hidden = false; canvasEl.classList.remove('hot'); return; }
   let label = it.label;
   if (it.kind === 'lock') label += state.solved[it.id] ? ' · 열림' : ' · 잠김';
   if (it.kind === 'door') label += ` · ${Object.keys(state.solved).length}/6`;
@@ -1535,7 +1522,7 @@ function move(dt) {
   const v = Math.hypot(vel.x, vel.z);
   bob += dt * v * 2.7; bobAmp = Math.min(1, v / WALK);
 }
-let bob = 0, bobAmp = 0, doorOpening = -1, last = 0, blinkT = 0, focusTo = 0;
+let bob = 0, bobAmp = 0, doorOpening = -1, last = 0, blinkT = 0, focusTo = 7;
 const _v = new THREE.Vector3();
 
 /* animation */
@@ -1552,10 +1539,8 @@ function animate(t, dt) {
   const [fp, ft] = FOCUS[focusTo];
   focus.position.lerp(fp, 1 - Math.exp(-dt * 2.2)); focus.target.position.lerp(ft, 1 - Math.exp(-dt * 2.2));
   const fGoal = state.started ? 1.5 : 0.9; focus.intensity += (fGoal - focus.intensity) * (1 - Math.exp(-dt * 1.5));
-  if (rope && rope.t >= 0 && rope.t < 1) { rope.t = Math.min(1, rope.t + dt * 0.9); rope.g.position.y = -rope.t * rope.t * 1.05; if (rope.t >= 1) rope.g.visible = false; }
   if (dust) { dust.rotation.y = t * 0.012; dust.position.y = Math.sin(t * 0.3) * 0.08; }
   for (const e of interactables) {
-    const act = isActive(e); e.sprite.visible = act; if (!act) continue;
     e.sprite.position.y = e.baseY + Math.sin(t * 2 + e.phase) * 0.05;
     e.sprite.getWorldPosition(_v); const d = _v.distanceTo(camera.position);
     /* unfinished targets show through walls and grow with distance so the next step is always findable */
@@ -1580,7 +1565,7 @@ function loop(now) {
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
 /* test hook: only with #debug in the URL, so regular players can't skip locks from the console */
-if (location.hash === '#debug') window.__timeCasino = { state, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, isActive, ZONES, teleport: (x, z, yaw = 0) => { player.x = x; player.z = z; player.yaw = yaw; } };
+if (location.hash === '#debug') window.__timeCasino = { state, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, ZONES, aimPick, teleport: (x, z, yaw = 0, pitch) => { player.x = x; player.z = z; player.yaw = yaw; if (pitch !== undefined) player.pitch = pitch; } };
 
 /* ------------------------------------------------------------------ boot */
 async function loadFonts() {
@@ -1600,7 +1585,7 @@ async function loadFonts() {
     if (isTouch) { $('#joy').hidden = false; $('#useBtn').hidden = false; }
     state.started = true; state.t0 = performance.now();
     updateLockHint(); requestLock();
-    toast('물음표는 단서, 빛나는 자물쇠가 지금 열 차례입니다. 어떤 단서가 짝인지는 직접 찾아보세요.');
+    toast('물음표는 단서, 빨간 자물쇠는 잠긴 장치입니다. 순서는 자유예요.');
   });
 })();
 })();
