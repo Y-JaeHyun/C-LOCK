@@ -317,7 +317,7 @@ button.item:hover { border-color: var(--gold); }
     <div class="eyebrow">BACK STAGE · 5주차 테마</div>
     <h1>TIME<em>CASINO</em></h1>
     <div class="tag">쉬는 시간의 내기</div>
-    <p>학교는 공부만 하던 곳이라고 기억했다. 그런데 쉬는 시간 종이 울리면 책상 위는 순식간에 판이 됐다. 묵찌빠, 카드 한 장, 별것 아닌 내기에 목숨 걸던 10분. 그 기억이 낯선 카지노가 되어 눈앞에 펼쳐졌다.</p>
+    <p>학교는 공부만 하던 곳이라고 기억했다. 그런데 쉬는 시간 종이 울리면 책상 위는 순식간에 판이 됐다. 별것 아닌 내기에 목숨 걸던 10분. 그 기억이 낯선 카지노가 되어 눈앞에 펼쳐졌다.</p>
     <p>방 곳곳에 단서가 흩어져 있다. 자물쇠를 하나 열 때마다 다음 장치가 깨어나고, 그 장치의 연관 단서가 모습을 드러낸다. 어떤 단서가 어느 자물쇠의 짝인지는 스스로 알아내야 한다.</p>
     <div class="facts">
       <div><b>6</b><span>자물쇠</span></div>
@@ -382,7 +382,7 @@ const THEME = {
   prologue: [
     { scene: 'class', text: '학교는 공부만 하던 곳이라고 기억했다.' },
     { scene: 'bell', text: '그런데 쉬는 시간 종이 울리면, 책상 위는 순식간에 판이 됐다.' },
-    { scene: 'game', text: '묵찌빠, 카드 한 장. 별것 아닌 내기에 목숨 걸던 10분.' },
+    { scene: 'game', text: '선생님 몰래 걸던 사소한 내기들. 이긴 사람이 다음 판을 정했다.' },
     { scene: 'morph', text: '그 기억이 낯선 카지노가 되어 눈앞에 펼쳐졌다.' },
     { scene: 'door', text: '자물쇠 여섯 개를 열고, 사소한 즐거움을 되찾아 이곳을 나가자.' },
   ],
@@ -1598,17 +1598,19 @@ const SCENES = {
     P('#cdb991', 0, 0, PW, 40); P('#8a5a30', 0, 40, PW, 68); P('#6a4224', 0, 40, PW, 2);
     kid(20, 14, '#2f4a7a', '#2a1a12', t, { smile: true, bob: true }); kid(164, 14, '#7a2f3a', '#4a2a16', t, { smile: true, bob: true });
     P('#2f4a7a', 14, 26, 20, 14); P('#7a2f3a', 158, 26, 20, 14);
-    const hand = (x, flip, k) => {
-      P(SKIN, x, 62, 12, 10);
-      if (k === 0) { P('#d9a87a', x + 2, 64, 8, 1); }
-      if (k === 1) { P(SKIN, x + (flip ? -6 : 12), 60, 6, 2); P(SKIN, x + (flip ? -6 : 12), 66, 6, 2); }
-      if (k === 2) { for (let i = 0; i < 5; i++) P(SKIN, x + (flip ? -5 : 12), 61 + i * 2, 5, 1); }
-    };
-    const k = Math.floor(t * 2) % 3; hand(64, false, k); hand(116, true, (k + 1 + Math.floor(t / 1.5)) % 3);
-    ptext(['묵!', '찌!', '빠!'][k], 96, 50, '#fff2a0', 9);
-    [[40, 84, '#fbf8f1'], [48, 86, '#fbf8f1'], [56, 84, '#fbf8f1']].forEach(([x, y, c], i) => { P(c, x, y, 8, 12); P(i === 1 ? '#c2401c' : '#2a1608', x + 3, y + 4, 2, 3); });
+    /* a nod, not an answer: fists pumping but never thrown, cards face down, a die mid-roll, candy as stakes */
+    const pump = Math.abs(Math.sin(t * 7)) * 4;
+    P(SKIN, 70, 58 - pump, 11, 9); P('#d9a87a', 72, 61 - pump, 7, 1); P('#2f4a7a', 66, 64 - pump, 5, 6);
+    P(SKIN, 111, 58 - pump, 11, 9); P('#d9a87a', 113, 61 - pump, 7, 1); P('#7a2f3a', 121, 64 - pump, 5, 6);
+    ptext(['하나', '둘', '셋!'][Math.floor(t * 2.2) % 3], 96, 50, '#fff2a0', 8);
+    [[36, 82], [44, 84], [52, 82]].forEach(([x, y]) => { P('#9b2525', x, y, 8, 12); P('#ffd9a0', x + 1, y + 1, 6, 1); P('#ffd9a0', x + 1, y + 10, 6, 1); });
+    const pip = Math.floor(t * 6) % 6, dx = 86, dy = 84;
+    P('#fbf8f1', dx, dy, 11, 11); P('#c9b48a', dx, dy + 10, 11, 1);
+    const PIPS = [[[5, 5]], [[2, 2], [8, 8]], [[2, 2], [5, 5], [8, 8]], [[2, 2], [8, 2], [2, 8], [8, 8]], [[2, 2], [8, 2], [5, 5], [2, 8], [8, 8]], [[2, 2], [8, 2], [2, 5], [8, 5], [2, 8], [8, 8]]];
+    PIPS[pip].forEach(([x, y]) => P(pip === 0 ? '#c2401c' : '#2a1608', dx + x, dy + y, 1, 1));
     for (let i = 0; i < 6; i++) P(['#ff6b3d', '#5fd38d', '#ffd36b'][i % 3], 132 + (i % 3) * 7, 86 + Math.floor(i / 3) * 6, 5, 4);
-    if (Math.floor(t * 2) % 3 === 2) ptext('이겼다!', 150, 74, '#ffd36b', 8);
+    const say = Math.floor(t / 1.6) % 2;
+    P('#fbf8f1', say ? 112 : 26, 1, say ? 66 : 48, 13); ptext(say ? '다음 판은 내가!' : '한 판 더!', say ? 145 : 50, 8, '#2a1608', 8);
   },
   morph(t) { classroom(t); desks(t, { back: true }); const a = Math.min(1, Math.max(0, (t - 0.6) / 2.2)); for (let y = 0; y < PH; y += 2) { if (Math.random() < a * 0.2) P('rgba(255,180,90,.5)', 0, y, PW, 1); } casino(t, a); },
   door(t) {
