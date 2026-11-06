@@ -57,6 +57,18 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .hud-right button:hover { border-color: var(--gold); }
 .hud-right b { font-family: var(--f-mono); color: var(--gold); font-weight: 600; font-variant-numeric: tabular-nums; }
 
+#goal { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(62px + env(safe-area-inset-top, 0px)); z-index: 19; max-width: min(420px, calc(100vw - 32px));
+  display: flex; flex-direction: column; gap: 3px; background: rgba(18,10,8,.78); border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: 10px; padding: 9px 12px; pointer-events: none; }
+#goal .gk { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: var(--gold); }
+#goal .gt { font-size: 14px; line-height: 1.5; text-wrap: pretty; }
+@media (max-width: 760px) { #goal { right: max(16px, env(safe-area-inset-right, 0px)); max-width: none; padding: 7px 10px; } #goal .gt { font-size: 13px; } }
+#goal.flash { animation: goalFlash 1.2s ease-out; }
+@keyframes goalFlash { 0% { border-color: var(--gold); box-shadow: 0 0 0 0 rgba(232,182,76,.7); } 100% { box-shadow: 0 0 0 14px rgba(232,182,76,0); } }
+#vignette { position: fixed; inset: 0; z-index: 5; pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(8,3,2,.55) 100%); }
+.story { margin: 0; line-height: 1.75; font-size: 15px; color: #e8d8bc; }
+.nextgoal { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--gold); border-radius: 10px; padding: 12px 14px; background: rgba(232,182,76,.08); }
+.nextgoal span { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: var(--gold); }
+.nextgoal b { font-weight: 600; line-height: 1.55; }
 #crosshair { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--cream); opacity: .7; z-index: 15; pointer-events: none; box-shadow: 0 0 0 2px rgba(0,0,0,.4); }
 #prompt { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 16; pointer-events: none;
   background: rgba(18,10,8,.85); border: 1px solid var(--gold); color: var(--cream); padding: 8px 14px; border-radius: 999px; font-size: 14px; white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; }
@@ -221,6 +233,7 @@ button.item:hover { border-color: var(--gold); }
 </style>
 
 <div id="stage"></div>
+<div id="vignette"></div>
 
 <div id="hud" hidden>
   <div class="hud-left"><span class="brand">TIME CASINO</span><span class="sub">5주차 · 쉬는 시간의 내기</span></div>
@@ -232,6 +245,7 @@ button.item:hover { border-color: var(--gold); }
     <button id="btnSound" type="button">소리 켬</button>
   </div>
 </div>
+<div id="goal" hidden aria-live="polite"><span class="gk" id="goalNo">목표 1 / 6</span><span class="gt" id="goalText"></span></div>
 <div id="crosshair" hidden></div>
 <div id="prompt" hidden></div>
 <div id="help" hidden></div>
@@ -248,7 +262,7 @@ button.item:hover { border-color: var(--gold); }
     <h1>TIME<em>CASINO</em></h1>
     <div class="tag">쉬는 시간의 내기</div>
     <p>학교는 공부만 하던 곳이라고 기억했다. 그런데 쉬는 시간 종이 울리면 책상 위는 순식간에 판이 됐다. 묵찌빠, 카드 한 장, 별것 아닌 내기에 목숨 걸던 10분. 그 기억이 낯선 카지노가 되어 눈앞에 펼쳐졌다.</p>
-    <p>방 곳곳의 단서를 모아 자물쇠 6개를 모두 열고, 사소한 즐거움을 되찾아 이곳을 나가자.</p>
+    <p>처음엔 게임룸에만 불이 켜져 있다. 자물쇠를 하나 열 때마다 다음 구역에 불이 들어오고 새 단서가 드러난다. 왼쪽 위에 뜨는 목표를 따라가며 자물쇠 6개를 모두 열고 이곳을 나가자.</p>
     <div class="facts">
       <div><b>6</b><span>자물쇠</span></div>
       <div><b>60:00</b><span>제한 시간</span></div>
@@ -286,9 +300,28 @@ const LOCKS = [
   { id: 'L5', no: 5, name: '홀덤 테이블 금고', type: '숫자 키패드', mech: 'keypad', set: '0123456789', hash: 'wmceji', related: 'holdem',
     hints: ['출구 옆 「인디언 홀덤 규칙」 명판과 짝입니다.', '가려진 공유 카드에 1~10을 하나씩 넣어 보세요. 내가 이길 수 있는 내 카드가 딱 1개인 경우와 딱 2개인 경우가 하나씩 나옵니다.'] },
   { id: 'L6', no: 6, name: '1등 경품 진열장', type: '대문자 키패드', mech: 'keypad', set: AZ, hash: '34q76d', related: null,
-    hints: ['연관 단서 없이 방 안 단서 하나로 풀립니다. 칵테일 테이블의 「질문지」를 보세요.', '단어를 소리 내어 읽어 보세요. Are는 R처럼 들립니다.'] },
+    hints: ['연관 단서 없이 단서 하나로 풀립니다. 홀덤 금고에서 나온 「질문지」를 보세요.', '단어를 소리 내어 읽어 보세요. Are는 R처럼 들립니다.'] },
 ];
 const LOCK_BY_ID = Object.fromEntries(LOCKS.map(l => [l.id, l]));
+
+/* The room is a route, like a real escape room: only the game room is lit at first.
+   Opening lock n plays a short reward, lights up zone n+1 and reveals the clue that pairs with lock n+1. */
+const CLUE_STAGE = { b_record: 1, b_roulette: 2, b_venn: 3, b_phrase: 4, b_rules: 5 };
+const STAGES = [
+  { goal: '게임룸부터 살펴보세요. 칠판의 「게임 기록」을 읽고, 구석의 경품 뽑기 기계 자물쇠를 여세요.',
+    title: '경품 캡슐', story: '집게가 저절로 움직이더니 캡슐 하나를 떨어뜨렸다. 안에는 금색 카지노 출입 칩. 칩을 쥐자 벨벳 로프가 바닥으로 내려가고, 건너편 TIME CASINO에 불이 들어온다.' },
+  { goal: '카지노로 건너가세요. 안쪽 벽의 「러시안룰렛」 진열장을 보고, 오른쪽 벽 가운데의 큰 16릴 슬롯머신을 여세요.',
+    title: '잭팟', story: '릴이 멈추자 동전이 쏟아진다. 동전 사이에 블랙잭 딜러 카드 한 장이 섞여 있다. 블랙잭 테이블과 오른쪽 벽 액자 위로 조명이 켜진다.' },
+  { goal: '오른쪽 벽의 「교집합」 액자를 보고, 블랙잭 테이블의 칩 트레이 자물쇠를 여세요.',
+    title: '굴러 나온 룰렛 공', story: '칩 트레이가 열리자 하얀 룰렛 공 하나가 굴러 나온다. 가운데 룰렛 테이블에 조명이 떨어지고, 게임룸 앞쪽 벽의 문구판 전구가 깜빡이기 시작한다.' },
+  { goal: '게임룸 앞쪽 벽의 「알 수 없는 문구」판을 보고, 가운데 룰렛 테이블의 칩 보관함을 여세요.',
+    title: '보관함 속 칩', story: '보관함 안에는 "HOLD\'EM" 이라고 새겨진 칩 하나뿐. 출구 옆 규칙 명판과 홀덤 테이블에 불이 들어온다.' },
+  { goal: '출구 옆 「인디언 홀덤 규칙」 명판을 읽고, 홀덤 테이블 위 화면 옆의 금고를 여세요.',
+    title: '금고 속 질문지', story: '금고 안에는 칩 대신 접힌 종이 한 장. 동시에 게임룸 왼쪽 벽, 1등 경품 진열장 속 루비가 붉게 빛난다.', give: 'b_quiz' },
+  { goal: '금고에서 나온 「질문지」를 들고, 게임룸 왼쪽 벽의 1등 경품 진열장을 여세요. (N 키로 단서 수첩에서 다시 볼 수 있어요)',
+    title: '1등 경품', story: '진열장이 열리고 루비를 손에 쥐었다. 출구 위 램프 여섯 개가 모두 초록색으로 바뀌었다.' },
+];
+const FINAL_GOAL = '출구 문이 풀렸습니다. 출구로 가서 문을 여세요.';
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const card = (r, cls = '') => `<span class="pc ${cls}">${r}</span>`;
@@ -327,7 +360,7 @@ const CLUES = {
       <li><span>④</span><span>승자가 팟을 모두 가져간다. 폴드하면 상대가 즉시 이긴다.</span></li>
       <li><span>⑤</span><span>스트레이트·트리플을 들고 폴드하면 칩 10개, 더블이면 칩 5개를 추가로 지급한다.</span></li>
     </ol></div>` },
-  b_quiz: { title: '질문지', where: '게임룸 · 칵테일 테이블', html: () => `
+  b_quiz: { title: '질문지', where: '홀덤 테이블 금고 안', html: () => `
     <div class="paper quiz"><h3>질문지</h3>1. Are<br>2. You<br>3. Be<br>4. Why</div>` },
 };
 
@@ -356,7 +389,7 @@ const RELATED = {
 };
 
 /* ------------------------------------------------------------------ state */
-const state = { started: false, finished: false, solved: {}, seen: {}, hint: {}, hintsUsed: 0, wrong: 0, t0: 0, finalTime: 0, modal: null, muted: false, overShown: false };
+const state = { started: false, finished: false, stage: 0, solved: {}, seen: {}, hint: {}, hintsUsed: 0, wrong: 0, t0: 0, finalTime: 0, modal: null, muted: false, overShown: false };
 
 /* ------------------------------------------------------------------ three setup */
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -364,20 +397,47 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
+renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 $('#stage').appendChild(renderer.domElement);
 const canvasEl = renderer.domElement;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0d0705);
-scene.fog = new THREE.Fog(0x0d0705, 20, 42);
+scene.fog = new THREE.Fog(0x0d0705, 12, 34);
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 80);
 camera.rotation.order = 'YXZ';
 camera.layers.enable(1);
-const player = { x: 0, z: 7.2, yaw: 0, pitch: -0.04, eye: 1.65, r: 0.33 };
+const player = { x: -2.4, z: 6.4, yaw: 0.55, pitch: -0.06, eye: 1.65, r: 0.33 };
 
 /* helpers */
 const colliders = [];
+/* Lighting zones: zone n holds the lights and glowing surfaces around stage n. Zone 1 (game room) starts lit;
+   the rest stay dark until their stage begins, then flicker on like neon. */
+const ZONES = {};
+function zone(n) { return ZONES[n] || (ZONES[n] = { on: n === 1, t: n === 1 ? 1 : 0, lights: [], mats: [] }); }
+function zl(n, l) { l.userData.to = l.intensity; zone(n).lights.push(l); return l; }
+function zm(n, mat) { zone(n).mats.push({ m: mat, to: mat.color.clone(), from: mat.color.clone().multiplyScalar(0.1) }); return mat; }
+function zg(n, mat) { zone(n).mats.push({ m: mat, op: mat.opacity }); return mat; }
+function applyZone(z, flick = 1) {
+  const e = z.t * z.t * (3 - 2 * z.t) * flick;
+  z.lights.forEach(l => { l.intensity = l.userData.to * e; });
+  z.mats.forEach(o => { if (o.op !== undefined) o.m.opacity = o.op * e; else o.m.color.copy(o.from).lerp(o.to, e); });
+}
+function activateZone(n) { const z = ZONES[n]; if (z && !z.on) z.on = true; }
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+/* where the focus light points during each stage (index = locks already opened) */
+const FOCUS = [
+  [V3(-8.6, 5.6, -5.4), V3(-10.5, 1.0, -7.5)],
+  [V3(9.0, 5.6, -5.1), V3(11.2, 1.0, -5.1)],
+  [V3(6.4, 5.6, -3.4), V3(6.4, 0.9, -5.2)],
+  [V3(2.6, 5.6, 4.2), V3(2.6, 1.0, 2.4)],
+  [V3(6.3, 5.6, 4.7), V3(7.4, 1.0, 4.7)],
+  [V3(-9.0, 5.6, 3.6), V3(-11.2, 1.2, 3.6)],
+  [V3(0, 5.6, 6.2), V3(0, 1.3, 8.8)],
+];
+let focus;
 const M = (color, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.75, metalness: 0.05 }, o));
 const Bm = (color, o = {}) => new THREE.MeshBasicMaterial(Object.assign({ color, toneMapped: false }, o));
 const bx = (w, h, d) => new THREE.BoxGeometry(w, h, d);
@@ -469,11 +529,17 @@ function makeInteract(g, kind, id, label, markerH) {
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: ICON[iconKind], transparent: true, toneMapped: false, depthWrite: false }));
   sp.scale.set(0.26, 0.26, 0.26); sp.position.set(0, markerH, 0); sp.layers.set(1);
   g.add(sp);
-  const entry = { g, kind, id, label, sprite: sp, baseY: markerH, phase: Math.random() * TAU };
+  const stage = kind === 'lock' ? LOCK_BY_ID[id].no : CLUE_STAGE[id] || 0;
+  const entry = { g, kind, id, label, stage, sprite: sp, baseY: markerH, phase: Math.random() * TAU };
   interactables.push(entry); g.userData.entry = entry;
   return entry;
 }
 function setIcon(entry, kind) { entry.sprite.material.map = ICON[kind]; entry.sprite.material.needsUpdate = true; }
+/* an object only responds once its stage has begun */
+const isActive = e => !e.stage || e.stage <= state.stage + 1;
+/* only the current stage's unfinished objects get the see-through, pulsing marker */
+const isPending = e => e.kind === 'door' ? state.stage >= 6 && !state.finished
+  : e.stage === state.stage + 1 && (e.kind === 'lock' ? !state.solved[e.id] : !state.seen[e.id]);
 
 /* padlock & keypad pieces */
 const brass = M(0xc9a13a, { metalness: 0.85, roughness: 0.3 });
@@ -496,22 +562,31 @@ function keypadTex(alpha) {
 }
 
 /* ------------------------------------------------------------------ build room */
-let clockTex, bulbsA = [], bulbsB = [], spinners = [], moles = [], doorPivot, doorLamps = [], posterTex;
+let clockTex, bulbs = [], spinners = [], moles = [], doorPivot, doorLamps = [], posterTex;
 
 function buildRoom() {
   ['clue', 'seen', 'lock', 'ok', 'door', 'doorLocked', 'poster'].forEach(k => ICON[k] = iconTex(k));
 
   /* light */
-  scene.add(new THREE.HemisphereLight(0xfff1dc, 0x3a1a12, 0.55));
-  scene.add(new THREE.AmbientLight(0xffffff, 0.12));
-  const pl = (c, i, d, x, y, z) => { const l = new THREE.PointLight(c, i, d, 1); l.position.set(x, y, z); scene.add(l); return l; };
-  pl(0xfff3e0, 1.0, 20, -6, 5.2, -3);
-  pl(0xfff3e0, 0.7, 16, -6, 5.0, 5);
-  pl(0xffb070, 0.95, 20, 6, 5.0, -3);
-  pl(0xffb070, 0.75, 16, 7, 4.8, 5);
-  pl(0xff6a3a, 0.9, 9, 6.3, 4.2, -7.6);
-  pl(0x7fc4ff, 0.5, 8, -6.5, 4.2, -7.6);
-  const spot = new THREE.SpotLight(0xffe2b0, 1.3, 12, 0.55, 0.5, 1); spot.position.set(2.2, 5.6, 1.6); spot.target.position.set(2.2, 0.9, 1.6); scene.add(spot, spot.target);
+  scene.add(new THREE.HemisphereLight(0xffe9cc, 0x2a120c, 0.2));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.05));
+  const pl = (n, c, i, d, x, y, z) => { const l = new THREE.PointLight(c, i, d, 1); l.position.set(x, y, z); scene.add(l); return zl(n, l); };
+  pl(1, 0xfff3e0, 1.2, 20, -6, 5.2, -3);
+  pl(1, 0xfff3e0, 0.95, 16, -6, 5.0, 5);
+  pl(1, 0x7fc4ff, 0.55, 8, -6.5, 4.2, -7.6);
+  pl(2, 0xffb070, 0.95, 18, 6, 5.0, -3);
+  pl(2, 0xff6a3a, 1.0, 9, 6.3, 4.2, -7.6);
+  pl(3, 0xffd6a0, 0.9, 7, 8.6, 3.4, -1.0);
+  pl(5, 0xffb070, 0.8, 12, 7, 4.8, 5);
+  pl(5, 0xffd6a0, 0.6, 5, 6.6, 3.0, 7.4);
+  pl(6, 0xff5070, 0.9, 5, -10.2, 2.4, 3.6);
+  const spot = new THREE.SpotLight(0xffe2b0, 1.4, 12, 0.55, 0.5, 1); spot.position.set(2.2, 5.6, 1.6); spot.target.position.set(2.2, 0.9, 1.6); scene.add(spot, spot.target); zl(4, spot);
+
+  /* focus light: one shadow-casting spot that glides to whatever the current stage is about */
+  focus = new THREE.SpotLight(0xffe7c0, 0, 13, 0.42, 0.6, 1);
+  focus.castShadow = true; focus.shadow.mapSize.set(1024, 1024); focus.shadow.bias = -0.0006; focus.shadow.normalBias = 0.02;
+  focus.shadow.camera.near = 0.5; focus.shadow.camera.far = 14;
+  focus.position.copy(FOCUS[0][0]); focus.target.position.copy(FOCUS[0][1]); scene.add(focus, focus.target);
 
   /* floor */
   const tileT = tex(512, 512, drawTiles, [6, 9]);
@@ -536,18 +611,61 @@ function buildRoom() {
   const trim = M(0x8a5a22, { metalness: 0.5, roughness: 0.4 });
   mesh(bx(24, 0.18, 0.2), trim, 0, 5.9, -8.9); mesh(bx(24, 0.18, 0.2), trim, 0, 5.9, 8.9);
   mesh(bx(0.2, 0.18, 18), trim, -11.9, 5.9, 0); mesh(bx(0.2, 0.18, 18), trim, 11.9, 5.9, 0);
-  const downl = Bm(0xfff1d0);
-  for (let x = -10; x <= 10; x += 4) for (let z = -7; z <= 7; z += 3.5) { const d = mesh(new THREE.CircleGeometry(0.11, 18), downl, x, 5.985, z); d.rotation.x = Math.PI / 2; }
+  const downL = Bm(0xfff1d0), downR = zm(2, Bm(0xfff1d0));
+  for (let x = -10; x <= 10; x += 4) for (let z = -7; z <= 7; z += 3.5) { const d = mesh(new THREE.CircleGeometry(0.11, 18), x < 0 ? downL : downR, x, 5.985, z); d.rotation.x = Math.PI / 2; }
 
   buildSigns();
   buildGameRoom();
   buildCasino();
   buildFrontWall();
+  buildRope();
+  buildDust();
+
+  /* shadows from the focus light; see-through glass and glowing surfaces stay out of it */
+  scene.traverse(o => { if (o.isMesh && !o.material.isMeshBasicMaterial && !(o.material.transparent && o.material.opacity < 0.5)) { o.castShadow = true; o.receiveShadow = true; } });
+  Object.values(ZONES).forEach(z => applyZone(z));
 }
 
-function bulbRow(parent, pts, r = 0.045) {
+/* soft additive halo behind neon signs */
+const glowTexture = (() => { let t; return () => t || (t = tex(256, 256, (g, w, h) => { const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.35, 'rgba(255,255,255,.45)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, w, h); })); })();
+function glow(n, color, w, h, x, y, z, ry = 0, op = 0.5) {
+  const mat = new THREE.MeshBasicMaterial({ map: glowTexture(), color, transparent: true, opacity: op, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const m = mesh(new THREE.PlaneGeometry(w, h), mat, x, y, z); m.rotation.y = ry; m.renderOrder = 2;
+  if (n > 1) zg(n, mat);
+  return m;
+}
+
+/* velvet rope between the game room and the casino; it drops after lock 1 */
+let rope = null;
+function buildRope() {
+  const g = grp(-0.45, 0, 0, 0), velvet = M(0x8a0f1e, { roughness: 0.9 });
+  const zs = []; for (let z = -8.55; z <= 8.6; z += 1.43) zs.push(z);
+  zs.forEach(z => { mesh(cy(0.028, 0.028, 0.95, 10), brass, 0, 0.475, z, g); mesh(new THREE.SphereGeometry(0.05, 12, 10), brass, 0, 0.97, z, g); mesh(cy(0.13, 0.15, 0.04, 18), brass, 0, 0.02, z, g); });
+  for (let i = 0; i < zs.length - 1; i++) { const a = zs[i], b = zs[i + 1]; const c = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 0.9, a), new THREE.Vector3(0, 0.62, (a + b) / 2), new THREE.Vector3(0, 0.9, b)); mesh(new THREE.TubeGeometry(c, 14, 0.026, 6), velvet, 0, 0, 0, g); }
+  const st = tex(512, 260, (c, w, h) => { c.fillStyle = '#1a0606'; c.fillRect(0, 0, w, h); c.strokeStyle = '#c9a13a'; c.lineWidth = 8; c.strokeRect(10, 10, w - 20, h - 20); c.fillStyle = '#e8b64c'; c.font = '62px Limelight, serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('CLOSED', w / 2, 92); c.fillStyle = '#f5e6c8'; c.font = '600 36px "IBM Plex Sans KR", sans-serif'; c.fillText('카지노 출입 칩이 필요합니다', w / 2, 178); });
+  [3.3, -2.4].forEach(z => { const sm = plane(st, 0.62, 0.315, true, { roughness: 0.6 }); sm.position.set(-0.04, 0.78, z); sm.rotation.y = -Math.PI / 2; g.add(sm); });
+  const col = { x0: -0.55, x1: -0.35, z0: -9, z1: 9 }; colliders.push(col);
+  rope = { g, col, t: -1 };
+}
+function dropRope() {
+  if (!rope || rope.t >= 0) return;
+  const i = colliders.indexOf(rope.col); if (i >= 0) colliders.splice(i, 1);
+  rope.t = 0;
+}
+
+/* dust drifting through the light */
+let dust;
+function buildDust() {
+  const n = 420, pos = new Float32Array(n * 3), r = rng(42);
+  for (let i = 0; i < n; i++) { pos[i * 3] = (r() - 0.5) * 23; pos[i * 3 + 1] = 0.3 + r() * 5.4; pos[i * 3 + 2] = (r() - 0.5) * 17; }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({ size: 0.035, map: glowTexture(), color: 0xffd9a0, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+  dust = new THREE.Points(geo, mat); scene.add(dust);
+}
+
+function bulbRow(parent, pts, r = 0.045, n = 1) {
   const geo = new THREE.SphereGeometry(r, 10, 8);
-  pts.forEach((p, i) => { const m = mesh(geo, Bm(0xffe6a0), p[0], p[1], p[2], parent); (i % 2 ? bulbsA : bulbsB).push(m); });
+  pts.forEach((p, i) => { const m = mesh(geo, Bm(0xffe6a0), p[0], p[1], p[2], parent); bulbs.push({ m, n, alt: i % 2 }); });
 }
 function rectBulbs(cx, cy0, w, h, z, step = 0.26) {
   const pts = [];
@@ -569,7 +687,8 @@ function buildSigns() {
     g.fillStyle = '#e8692c'; g.fillText('GAME ROOM', w / 2, h / 2 + 10);
   });
   const grm = plane(gr, 6.2, 2.55); grm.position.set(-6.4, 4.45, -8.94); scene.add(grm);
-  bulbRow(scene, rectBulbs(-6.4, 4.45, 6.0, 2.35, -8.9, 0.3));
+  bulbRow(scene, rectBulbs(-6.4, 4.45, 6.0, 2.35, -8.9, 0.3), 0.045, 1);
+  glow(1, 0xff9a40, 9.5, 5.2, -6.4, 4.45, -8.975, 0, 0.32);
 
   /* TIME CASINO neon */
   const tc = tex(1024, 460, (g, w, h) => {
@@ -581,11 +700,12 @@ function buildSigns() {
     glowText(g, 'TIME', w / 2, 255, '138px Limelight, Didot, serif', '#ffd36b', 28);
     glowText(g, 'CASINO', w / 2, 385, '128px Limelight, Didot, serif', '#ff6b3d', 30);
   });
-  const tcm = plane(tc, 8.2, 3.68); tcm.position.set(6.3, 4.05, -8.94); scene.add(tcm);
-  bulbRow(scene, rectBulbs(6.3, 3.69, 8.02, 2.78, -8.9, 0.32));
+  const tcm = plane(tc, 8.2, 3.68); tcm.position.set(6.3, 4.05, -8.94); scene.add(tcm); zm(2, tcm.material);
+  bulbRow(scene, rectBulbs(6.3, 3.69, 8.02, 2.78, -8.9, 0.32), 0.045, 2);
+  glow(2, 0xff5a2a, 12.5, 6.4, 6.3, 3.9, -8.975, 0, 0.5);
   clockTex = tex(256, 256, () => {});
   drawClock();
-  mesh(new THREE.CircleGeometry(0.4, 40), Bm(0xffffff, { map: clockTex }), 6.3, 5.35, -8.9);
+  mesh(new THREE.CircleGeometry(0.4, 40), zm(2, Bm(0xffffff, { map: clockTex })), 6.3, 5.35, -8.9);
   mesh(new THREE.TorusGeometry(0.41, 0.03, 10, 48), M(0xe8b64c, { metalness: 0.8, roughness: 0.3, emissive: 0x5a3a0a }), 6.3, 5.35, -8.9);
 }
 function drawClock() {
@@ -705,11 +825,8 @@ function buildGameRoom() {
     mesh(cy(0.06, 0.06, 1.0, 12), M(0x2a1d18, { metalness: 0.6 }), 0, 0.5, 0, g);
     mesh(cy(0.3, 0.3, 0.04, 24), M(0x2a1d18, { metalness: 0.6 }), 0, 0.02, 0, g);
     mesh(cy(0.48, 0.48, 0.05, 32), M(0x3c7fc4, { roughness: 0.4 }), 0, 1.03, 0, g);
-    mesh(bx(0.34, 0.015, 0.46), M(0x8a5a22), 0.02, 1.065, 0.02, g).rotation.y = 0.2;
-    const qz = tex(400, 540, (c, w, h) => { c.fillStyle = '#f3ead6'; c.fillRect(0, 0, w, h); c.fillStyle = '#2b1e16'; c.font = '700 58px Gaegu, cursive'; c.textAlign = 'left'; c.fillText('질문지', 36, 90); c.font = '700 52px Gaegu, cursive'; ['1. Are', '2. You', '3. Be', '4. Why'].forEach((s, i) => c.fillText(s, 50, 190 + i * 88)); });
-    const qm = plane(qz, 0.3, 0.405, true); qm.rotation.x = -Math.PI / 2; qm.rotation.z = -0.2; qm.position.set(0.02, 1.075, 0.02); g.add(qm);
+    chips(g, 0.12, 1.055, -0.1, 5, 0xd9542b); chips(g, -0.15, 1.055, 0.12, 3, 0x3c7fc4);
     [[-0.75, 0.2], [0.7, -0.3]].forEach(([x, z]) => { mesh(cy(0.2, 0.2, 0.06, 20), M(0xd9542b), x, 0.75, z, g); mesh(cy(0.03, 0.03, 0.72, 8), M(0x2a1d18), x, 0.37, z, g); });
-    makeInteract(g, 'clue', 'b_quiz', '질문지', 1.55);
     collide(-4.0, 4.9, 1.0, 1.0);
   }
 
@@ -791,12 +908,12 @@ function buildCasino() {
       const g = grp(11.35, 0, z, -Math.PI / 2);
       mesh(bx(w, 1.85, 0.75), M(big ? 0x7a1d12 : 0x2d2a40, { roughness: 0.4, metalness: 0.3 }), 0, 0.925, 0, g);
       mesh(bx(w + 0.04, 0.12, 0.79), M(0xc9a13a, { metalness: 0.8, roughness: 0.3 }), 0, 1.86, 0, g);
-      mesh(bx(w - 0.1, 0.25, 0.3), Bm(big ? 0xff8a3a : 0x6fc0ff), 0, 2.05, 0.1, g);
+      mesh(bx(w - 0.1, 0.25, 0.3), zm(2, Bm(big ? 0xff8a3a : 0x6fc0ff)), 0, 2.05, 0.1, g);
       mesh(bx(w, 0.08, 0.35), M(0x1a1a1a), 0, 0.85, 0.5, g);
       const scr = big
         ? tex(1600, 300, (c, W, H) => { c.fillStyle = '#0d0606'; c.fillRect(0, 0, W, H); const cw = W / 16; 'SXURMVQBICVDOERT'.split('').forEach((ch, k) => { c.fillStyle = '#2a0f0f'; rrect(c, k * cw + 6, 30, cw - 12, H - 60, 10); c.fill(); glowText(c, ch, k * cw + cw / 2, H / 2 + 4, '84px Bungee, sans-serif', '#ffd36b', 14); }); })
         : tex(512, 320, (c, W, H) => { c.fillStyle = '#10101a'; c.fillRect(0, 0, W, H); symSets[i].forEach((s, k) => { c.fillStyle = '#f7f3ea'; c.fillRect(20 + k * 164, 30, 144, H - 60); c.fillStyle = s === '7' ? '#c2401c' : '#2a1608'; c.font = `${s === 'BAR' ? 54 : 110}px Bungee, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, 92 + k * 164, H / 2 + 6); }); });
-      const sm = plane(scr, w - 0.14, big ? 0.36 : 0.42); sm.position.set(0, 1.35, 0.38); g.add(sm);
+      const sm = plane(scr, w - 0.14, big ? 0.36 : 0.42); sm.position.set(0, 1.35, 0.38); g.add(sm); zm(2, sm.material);
       mesh(cy(0.02, 0.02, 0.4, 8), M(0xcccccc, { metalness: 0.9 }), w / 2 + 0.05, 1.3, 0.1, g);
       mesh(new THREE.SphereGeometry(0.06, 12, 10), M(0xc2401c), w / 2 + 0.05, 1.52, 0.1, g);
       if (big) {
@@ -879,7 +996,7 @@ function buildCasino() {
     });
     mesh(bx(0.08, 0.3, 0.06), M(0x1a1a1a, { metalness: 0.5 }), 0, 0.15, -0.04, dev);
     mesh(bx(0.86, 0.56, 0.04), M(0x111111, { metalness: 0.4, roughness: 0.3 }), 0, 0.52, -0.02, dev);
-    const hm = plane(ht, 0.8, 0.5); hm.position.set(0, 0.52, 0.002); dev.add(hm);
+    const hm = plane(ht, 0.8, 0.5); hm.position.set(0, 0.52, 0.002); dev.add(hm); zm(5, hm.material);
     const safe = grp(0, 0, 0.32, 0, dev);
     mesh(bx(0.4, 0.3, 0.3), M(0x5a5d63, { metalness: 0.7, roughness: 0.35 }), 0, 0.15, 0, safe);
     const kp = plane(keypadTex(false), 0.16, 0.2, true, { roughness: 0.5 }); kp.position.set(0.08, 0.15, 0.152); safe.add(kp);
@@ -901,12 +1018,12 @@ function buildCasino() {
   }
 
   /* pendant lamps & sconces */
-  [[4.2, -3], [8.4, -3], [4.4, 4.8], [10.2, 2.2]].forEach(([x, z]) => {
+  [[4.2, -3, 2], [8.4, -3, 3], [4.4, 4.8, 4], [10.2, 2.2, 3]].forEach(([x, z, n]) => {
     mesh(cy(0.006, 0.006, 1.0, 6), M(0x1a1a1a), x, 5.5, z);
     mesh(new THREE.SphereGeometry(0.2, 18, 12, 0, TAU, 0, Math.PI / 2), M(0xc9a13a, { metalness: 0.7, roughness: 0.3, side: THREE.DoubleSide }), x, 5.0, z);
-    mesh(new THREE.SphereGeometry(0.1, 14, 10), Bm(0xffe2a8), x, 4.93, z);
+    mesh(new THREE.SphereGeometry(0.1, 14, 10), zm(n, Bm(0xffe2a8)), x, 4.93, z);
   });
-  [-7, -1, 6].forEach(z => { mesh(bx(0.1, 0.3, 0.2), brass, 11.92, 3.2, z); mesh(new THREE.SphereGeometry(0.1, 12, 10), Bm(0xffd59a), 11.8, 3.38, z); });
+  [[-7, 2], [-1, 3], [6, 5]].forEach(([z, n]) => { mesh(bx(0.1, 0.3, 0.2), brass, 11.92, 3.2, z); mesh(new THREE.SphereGeometry(0.1, 12, 10), zm(n, Bm(0xffd59a)), 11.8, 3.38, z); glow(n, 0xffb060, 1.4, 1.4, 11.88, 3.38, z, -Math.PI / 2, 0.5); });
 }
 
 function buildFrontWall() {
@@ -919,6 +1036,7 @@ function buildFrontWall() {
   mesh(new THREE.SphereGeometry(0.05, 12, 10), brass, 0.65, 0, -0.08, door);
   const ex = tex(256, 96, (c, w, h) => { c.fillStyle = '#0c2a14'; c.fillRect(0, 0, w, h); glowText(c, 'EXIT', w / 2, h / 2 + 4, '64px Bungee, sans-serif', '#5fd38d', 14); });
   const exm = plane(ex, 0.7, 0.26); exm.position.set(0, 3.18, 8.9); exm.rotation.y = Math.PI; scene.add(exm);
+  glow(1, 0x5fd38d, 1.8, 0.9, 0, 3.18, 8.93, Math.PI, 0.35);
   for (let i = 0; i < 6; i++) { const l = mesh(new THREE.SphereGeometry(0.07, 14, 10), Bm(0x7a1a14), -0.75 + i * 0.3, 3.55, 8.9); doorLamps.push(l); }
   const dg = grp(0, 0, 8.75, Math.PI); dg.add(new THREE.Object3D());
   const hit = mesh(bx(1.8, 2.8, 0.1), new THREE.MeshBasicMaterial({ visible: false }), 0, 1.4, 0, dg);
@@ -941,7 +1059,7 @@ function buildFrontWall() {
     mesh(bx(3.3, 1.3, 0.1), M(0x151010), 0, 3.3, 0, g);
     const lb = tex(1280, 460, (c, w, h) => { c.fillStyle = '#f7f3ea'; c.fillRect(0, 0, w, h); c.strokeStyle = '#d9d0bd'; c.lineWidth = 3; for (let y = 30; y < h; y += 34) { c.beginPath(); c.moveTo(0, y); c.lineTo(w, y); c.stroke(); } c.fillStyle = '#b3261e'; c.font = '600 40px "IBM Plex Sans KR", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('오늘의 문구', w / 2, 70); c.fillStyle = '#151010'; c.font = '150px Bungee, sans-serif'; 'MDSINCRE'.split('').forEach((ch, i) => c.fillText(ch, 110 + i * 151, 280)); });
     const lm = plane(lb, 3.1, 1.12, true, { roughness: 0.8 }); lm.position.set(0, 3.3, 0.055); g.add(lm);
-    bulbRow(g, rectBulbs(0, 3.3, 3.3, 1.3, 0.07, 0.3), 0.035);
+    bulbRow(g, rectBulbs(0, 3.3, 3.3, 1.3, 0.07, 0.3), 0.035, 4);
     makeInteract(g, 'clue', 'b_phrase', '알 수 없는 문구', 4.2);
   }
 
@@ -977,6 +1095,7 @@ const sfx = {
   ok: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, 'triangle', 0.07, i * 0.09)); },
   bad: () => { tone(160, 0.25, 'square', 0.05); tone(120, 0.3, 'square', 0.04, 0.08); },
   door: () => { [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.35, 'sine', 0.07, i * 0.11)); },
+  power: () => { tone(70, 0.5, 'sawtooth', 0.035); [0, 0.12, 0.3, 0.38].forEach(w => tone(2200, 0.03, 'square', 0.02, w)); tone(196, 0.6, 'triangle', 0.05, 0.4); tone(294, 0.7, 'triangle', 0.05, 0.55); },
 };
 
 /* ------------------------------------------------------------------ UI */
@@ -985,8 +1104,9 @@ function toast(msg, good = false) {
   $('#toast').appendChild(el); setTimeout(() => el.remove(), 2600);
 }
 const keys = new Set();
+let afterClose = null;
 function openModal(html, kind) {
-  keys.clear(); lockUI = null; vel.x = vel.z = 0;
+  keys.clear(); lockUI = null; vel.x = vel.z = 0; afterClose = null;
   if (document.pointerLockElement) document.exitPointerLock();
   state.modal = kind || 'sheet';
   $('#lockHint').hidden = true;
@@ -1000,6 +1120,7 @@ function closeModal(byClick = true) {
   $('#modal').hidden = true; state.modal = null; lockUI = null;
   if (byClick) requestLock();
   updateLockHint();
+  const f = afterClose; afterClose = null; if (f) f();
 }
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
 
@@ -1019,7 +1140,8 @@ function openLock(id) {
   const L = LOCK_BY_ID[id];
   if (L.related) markSeen('r_' + L.related);
   const solved = !!state.solved[id];
-  const rel = L.related ? `<div class="section-label">연관 단서 · ${esc(RELATED[L.related].title)}</div>${RELATED[L.related].html()}` : `<div class="meta">이 자물쇠에는 연관 단서가 없습니다. 방 안 단서 하나만으로 풀 수 있습니다.</div>`;
+  const rel = L.related ? `<div class="section-label">연관 단서 · ${esc(RELATED[L.related].title)}</div>${RELATED[L.related].html()}`
+    : `<div class="meta">이 자물쇠에는 연관 단서가 없습니다. 금고에서 나온 질문지 하나로 풀 수 있습니다.</div>${state.seen.b_quiz ? `<div class="section-label">가지고 있는 단서 · 질문지</div>${CLUES.b_quiz.html()}` : ''}`;
   openModal(`
     <div class="head"><span class="eyebrow">자물쇠 ${L.no} · ${esc(L.type)}</span><h2>${esc(L.name)}</h2>
       <span>${solved ? '<span class="chip ok">열림</span>' : '<span class="chip bad">잠김</span>'}</span></div>
@@ -1117,10 +1239,39 @@ function onSolved(L) {
   if (p && p.keypad) { p.keypad.material.emissive = new THREE.Color(0x1a6a3a); p.keypad.material.emissiveIntensity = 0.6; }
   if (L.id === 'L6' && p.ruby) p.ruby.material.emissive.setHex(0xa0001a);
   const n = Object.keys(state.solved).length;
+  state.stage = n;
   doorLamps[L.no - 1].material.color.setHex(0x5fd38d);
   updateHUD();
-  toast(`자물쇠 ${n}/6 해제`, true);
-  if (n === 6) { setTimeout(() => { toast('모든 자물쇠가 열렸습니다. 출구로 가세요!', true); }, 900); const d = interactables.find(e => e.id === 'exit'); if (d) setIcon(d, 'door'); }
+  if (n === 6) { const d = interactables.find(e => e.id === 'exit'); if (d) setIcon(d, 'door'); }
+  setTimeout(() => openReward(n), 1000);
+}
+/* the reward sheet tells what happened and what is next; the next zone lights up as it closes, so the player sees it happen */
+function openReward(n) {
+  const S = STAGES[n - 1];
+  if (S.give) { markSeen(S.give); }
+  openModal(`<div class="head"><span class="eyebrow">자물쇠 ${n} / 6 해제</span><h2>${esc(S.title)}</h2></div>
+    <p class="story">${esc(S.story)}</p>
+    ${S.give ? `<div class="section-label">획득한 단서 · ${esc(CLUES[S.give].title)}</div>${CLUES[S.give].html()}` : ''}
+    <div class="nextgoal"><span>${n < 6 ? `다음 목표 · ${n + 1} / 6` : '마지막'}</span><b>${esc(goalText())}</b></div>
+    <div class="actions"><button class="btn primary" type="button" id="goNext">${n < 6 ? '불이 켜진 곳으로' : '출구로'}</button></div>`, 'reward');
+  $('#goNext').addEventListener('click', () => closeModal());
+  afterClose = () => beginStage(n);
+}
+function beginStage(n) {
+  if (n === 1) dropRope();
+  activateZone(n + 1);
+  focusTo = Math.min(n, FOCUS.length - 1);
+  sfx.power();
+  updateGoal(true);
+}
+function goalText() { return state.stage < 6 ? STAGES[state.stage].goal : FINAL_GOAL; }
+function placeGoal() { const h = $('#hud'); if (!h.hidden) $('#goal').style.top = Math.round(h.getBoundingClientRect().bottom - 4) + 'px'; }
+addEventListener('resize', placeGoal);
+function updateGoal(flash = false) {
+  placeGoal();
+  $('#goalNo').textContent = state.stage < 6 ? `목표 ${state.stage + 1} / 6` : '탈출';
+  $('#goalText').textContent = goalText();
+  if (flash) { const g = $('#goal'); g.classList.remove('flash'); void g.offsetWidth; g.classList.add('flash'); }
 }
 function tryDoor() {
   const n = Object.keys(state.solved).length;
@@ -1132,8 +1283,9 @@ function tryDoor() {
 }
 
 function locksPanel() {
-  openModal(`<div class="head"><span class="eyebrow">자물쇠 현황</span><h2>${Object.keys(state.solved).length} / 6 해제</h2><span class="meta">자물쇠는 방 안 장치에 붙어 있습니다. 가까이 가서 조사하세요.</span></div>
-    <div class="list">${LOCKS.map(L => `<div class="item"><span class="no">${L.no}</span><span class="t"><span>${esc(L.type)}</span><small>${state.solved[L.id] ? esc(L.name) : '위치를 찾아보세요'}</small></span>${state.solved[L.id] ? '<span class="chip ok">열림</span>' : '<span class="chip bad">잠김</span>'}</div>`).join('')}</div>`);
+  openModal(`<div class="head"><span class="eyebrow">자물쇠 현황</span><h2>${Object.keys(state.solved).length} / 6 해제</h2><span class="meta">자물쇠는 순서대로 하나씩 깨어납니다. 지금 목표: ${esc(goalText())}</span></div>
+    <div class="list">${LOCKS.map(L => { const st = state.solved[L.id] ? 'ok' : L.no === state.stage + 1 ? 'now' : 'later';
+      return `<div class="item"><span class="no">${L.no}</span><span class="t"><span>${st === 'later' ? '???' : esc(L.name)}</span><small>${st === 'later' ? '아직 불이 꺼져 있습니다' : esc(L.type)}</small></span>${st === 'ok' ? '<span class="chip ok">열림</span>' : st === 'now' ? '<span class="chip bad">지금 풀 차례</span>' : '<span class="chip">대기</span>'}</div>`; }).join('')}</div>`);
 }
 function notesPanel() {
   const blog = Object.keys(CLUES).filter(k => state.seen[k]);
@@ -1153,8 +1305,8 @@ function notesPanel() {
 }
 function hintsPanel() {
   const left = HINT_LIMIT - state.hintsUsed;
-  openModal(`<div class="head"><span class="eyebrow">힌트</span><h2>남은 힌트 ${left} / ${HINT_LIMIT}</h2><span class="meta">자물쇠마다 2단계 힌트가 있습니다. 1단계는 짝이 되는 단서, 2단계는 푸는 방법입니다. 한 번 열 때마다 1개를 씁니다.</span></div>
-    <div class="list">${LOCKS.map(L => { const lv = state.hint[L.id] || 0; return `<div class="hintrow"><div class="top"><span><b style="color:var(--gold);font-family:var(--f-mono)">${L.no}</b> · ${esc(L.type)} ${state.solved[L.id] ? '<span class="chip ok">열림</span>' : ''}</span>
+  openModal(`<div class="head"><span class="eyebrow">힌트</span><h2>남은 힌트 ${left} / ${HINT_LIMIT}</h2><span class="meta">지금까지 깨어난 자물쇠의 힌트만 보입니다. 1단계는 짝이 되는 단서, 2단계는 푸는 방법이며, 한 번 열 때마다 1개를 씁니다.</span></div>
+    <div class="list">${LOCKS.filter(L => L.no <= state.stage + 1).map(L => { const lv = state.hint[L.id] || 0; return `<div class="hintrow"><div class="top"><span><b style="color:var(--gold);font-family:var(--f-mono)">${L.no}</b> · ${esc(L.type)} ${state.solved[L.id] ? '<span class="chip ok">열림</span>' : ''}</span>
       <span class="hb"><button type="button" data-h="${L.id}" data-lv="1" ${lv >= 1 || left <= 0 ? 'disabled' : ''}>1단계</button><button type="button" data-h="${L.id}" data-lv="2" ${lv !== 1 || left <= 0 ? 'disabled' : ''}>2단계</button></span></div>
       ${lv >= 1 ? `<p>${esc(L.hints[0])}</p>` : ''}${lv >= 2 ? `<p>${esc(L.hints[1])}</p>` : ''}</div>`; }).join('')}</div>`);
   $('#sheet').querySelectorAll('[data-h]').forEach(b => b.addEventListener('click', () => {
@@ -1324,6 +1476,8 @@ function pick(cx, cy0) {
 }
 let current = null;
 function tryInteract(hit) {
+  const entry = hit.obj.userData.entry;
+  if (entry && !isActive(entry)) { toast('아직 어둠 속에 잠들어 있다. 왼쪽 위 목표를 먼저 따라가 보세요.'); return; }
   if (hit.dist > REACH) { toast('조금 더 가까이 가야 조사할 수 있습니다.'); return; }
   const { kind, id } = hit.obj.userData.interact; sfx.click();
   if (kind === 'clue') openClue(id);
@@ -1341,6 +1495,7 @@ function updateHover() {
   const pr = $('#prompt');
   if (!hit) { pr.hidden = true; canvasEl.classList.remove('hot'); return; }
   const it = hit.obj.userData.interact, near = hit.dist <= REACH;
+  if (!isActive(hit.obj.userData.entry)) { pr.textContent = '어둠 속에 무언가 있다 · 아직 반응 없음'; pr.classList.add('far'); pr.hidden = false; canvasEl.classList.remove('hot'); return; }
   let label = it.label;
   if (it.kind === 'lock') label += state.solved[it.id] ? ' · 열림' : ' · 잠김';
   if (it.kind === 'door') label += ` · ${Object.keys(state.solved).length}/6`;
@@ -1381,7 +1536,7 @@ function move(dt) {
   const v = Math.hypot(vel.x, vel.z);
   bob += dt * v * 2.7; bobAmp = Math.min(1, v / WALK);
 }
-let bob = 0, bobAmp = 0, doorOpening = -1, last = 0, blinkT = 0;
+let bob = 0, bobAmp = 0, doorOpening = -1, last = 0, blinkT = 0, focusTo = 0;
 const _v = new THREE.Vector3();
 
 /* animation */
@@ -1391,10 +1546,23 @@ function animate(t, dt) {
   for (const s of spinners) s.m.rotation[s.axis] += s.speed * dt;
   for (const m of moles) m.m.position.y = m.base + Math.max(0, Math.sin(t * 2 + m.ph)) * 0.12;
   blinkT += dt;
-  if (blinkT > 0.45) { blinkT = 0; const on = Math.floor(t / 0.45) % 2; bulbsA.forEach(b => b.material.color.setHex(on ? 0xfff2c0 : 0x8a6a30)); bulbsB.forEach(b => b.material.color.setHex(on ? 0x8a6a30 : 0xfff2c0)); }
+  if (blinkT > 0.45) { blinkT = 0; const on = Math.floor(t / 0.45) % 2; bulbs.forEach(b => b.m.material.color.setHex(zone(b.n).t < 1 ? 0x2a1d14 : (on ^ b.alt) ? 0xfff2c0 : 0x8a6a30)); }
+  /* zones fade in with a neon flicker */
+  for (const k in ZONES) { const z = ZONES[k]; if (z.on && z.t < 1) { z.t = Math.min(1, z.t + dt / 1.8); applyZone(z, z.t < 0.7 && Math.random() < 0.35 ? 0.15 : 1); } }
+  /* focus light glides to the current target */
+  const [fp, ft] = FOCUS[focusTo];
+  focus.position.lerp(fp, 1 - Math.exp(-dt * 2.2)); focus.target.position.lerp(ft, 1 - Math.exp(-dt * 2.2));
+  const fGoal = state.started ? 1.5 : 0.9; focus.intensity += (fGoal - focus.intensity) * (1 - Math.exp(-dt * 1.5));
+  if (rope && rope.t >= 0 && rope.t < 1) { rope.t = Math.min(1, rope.t + dt * 0.9); rope.g.position.y = -rope.t * rope.t * 1.05; if (rope.t >= 1) rope.g.visible = false; }
+  if (dust) { dust.rotation.y = t * 0.012; dust.position.y = Math.sin(t * 0.3) * 0.08; }
   for (const e of interactables) {
+    const act = isActive(e); e.sprite.visible = act; if (!act) continue;
     e.sprite.position.y = e.baseY + Math.sin(t * 2 + e.phase) * 0.05;
     e.sprite.getWorldPosition(_v); const d = _v.distanceTo(camera.position);
+    /* unfinished targets show through walls and grow with distance so the next step is always findable */
+    const pend = isPending(e);
+    e.sprite.material.depthTest = !pend; e.sprite.renderOrder = pend ? 10 : 0;
+    e.sprite.scale.setScalar(0.26 * (pend ? Math.max(1, d / 5) : 1) * (pend ? 1 + Math.sin(t * 4 + e.phase) * 0.08 : 1));
     e.sprite.material.opacity = Math.max(0, Math.min(1, (d - 1.2) / 1.3));
   }
   for (const id in locks3d) { const p = locks3d[id]; if (p.opening !== undefined && p.opening < 1) { p.opening = Math.min(1, p.opening + dt * 1.5); p.shackle.position.y = 0.085 + p.opening * 0.06; p.shackle.rotation.y = p.opening * 1.2; p.body.material.emissive = new THREE.Color(0x1a6a3a); p.body.material.emissiveIntensity = p.opening * 0.7; } }
@@ -1413,7 +1581,7 @@ function loop(now) {
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
 /* test hook: only with #debug in the URL, so regular players can't skip locks from the console */
-if (location.hash === '#debug') window.__timeCasino = { state, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, teleport: (x, z, yaw = 0) => { player.x = x; player.z = z; player.yaw = yaw; } };
+if (location.hash === '#debug') window.__timeCasino = { state, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, isActive, ZONES, teleport: (x, z, yaw = 0) => { player.x = x; player.z = z; player.yaw = yaw; } };
 
 /* ------------------------------------------------------------------ boot */
 async function loadFonts() {
@@ -1429,11 +1597,11 @@ async function loadFonts() {
   const sb = $('#startBtn'); sb.disabled = false; sb.textContent = '입장하기';
   sb.addEventListener('click', () => {
     audio(); sfx.click();
-    $('#intro').hidden = true; $('#hud').hidden = false; $('#help').hidden = isTouch; $('#crosshair').hidden = false;
+    $('#intro').hidden = true; $('#hud').hidden = false; $('#help').hidden = isTouch; $('#crosshair').hidden = false; $('#goal').hidden = false; updateGoal(true);
     if (isTouch) { $('#joy').hidden = false; $('#useBtn').hidden = false; }
     state.started = true; state.t0 = performance.now();
     updateLockHint(); requestLock();
-    toast('방 곳곳의 물음표를 조사하고, 자물쇠 6개를 모두 여세요.');
+    toast('왼쪽 위 목표를 따라가세요. 빛나는 표시가 지금 볼 곳입니다.');
   });
 })();
 })();
