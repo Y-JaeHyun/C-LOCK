@@ -59,6 +59,13 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 #goal { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(62px + env(safe-area-inset-top, 0px)); z-index: 19; max-width: min(420px, calc(100vw - 32px));
   display: flex; flex-direction: column; gap: 3px; background: rgba(18,10,8,.78); border: 1px solid var(--line); border-left: 3px solid var(--gold); border-radius: 10px; padding: 9px 12px; pointer-events: none; }
+#goal { pointer-events: auto; }
+#goalToggle { all: unset; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+#goalToggle:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+#goalToggle kbd { font-family: var(--f-mono); font-size: 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: auto; }
+#goal .gchev { color: var(--gold); font-size: 11px; transition: transform .2s; }
+#goal.closed .gchev { transform: rotate(-90deg); }
+#goal.closed .gt { display: none; }
 #goal .gk { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: var(--gold); }
 #goal .gt { font-size: 14px; line-height: 1.5; text-wrap: pretty; }
 @media (max-width: 760px) { #goal { right: max(16px, env(safe-area-inset-right, 0px)); max-width: none; padding: 7px 10px; } #goal .gt { font-size: 13px; } }
@@ -69,6 +76,7 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 .nextgoal { display: flex; flex-direction: column; gap: 4px; border: 1px solid var(--gold); border-radius: 10px; padding: 12px 14px; background: rgba(232,182,76,.08); }
 .nextgoal span { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; color: var(--gold); }
 .nextgoal b { font-weight: 600; line-height: 1.55; }
+.sleeping { border: 1px dashed var(--line); border-radius: 10px; padding: 18px; text-align: center; color: var(--muted); font-size: 14px; background: repeating-linear-gradient(45deg, rgba(255,255,255,.02) 0 8px, transparent 8px 16px); }
 #crosshair { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--cream); opacity: .7; z-index: 15; pointer-events: none; box-shadow: 0 0 0 2px rgba(0,0,0,.4); }
 #prompt { position: fixed; left: 50%; bottom: calc(88px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 16; pointer-events: none;
   background: rgba(18,10,8,.85); border: 1px solid var(--gold); color: var(--cream); padding: 8px 14px; border-radius: 999px; font-size: 14px; white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis; }
@@ -88,6 +96,41 @@ button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 #joy { position: fixed; left: max(24px, env(safe-area-inset-left, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(245,230,200,.35); background: rgba(18,10,8,.35); z-index: 18; touch-action: none; }
 #knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(232,182,76,.75); }
 #useBtn { position: fixed; right: max(24px, env(safe-area-inset-right, 0px)); bottom: calc(36px + env(safe-area-inset-bottom, 0px)); width: 76px; height: 76px; border-radius: 50%; border: 2px solid var(--gold); background: rgba(18,10,8,.6); color: var(--gold); font-weight: 600; z-index: 18; }
+
+/* Cutscene letterbox */
+#cine { position: fixed; inset: 0; z-index: 35; pointer-events: none; }
+#cine .bar { position: absolute; left: 0; right: 0; height: 11vh; background: #000; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+#cine .top { top: 0; transform: translateY(-100%); }
+#cine .bot { bottom: 0; transform: translateY(100%); }
+#cine.on .bar { transform: none; }
+#caption { position: absolute; left: 50%; bottom: calc(11vh + 18px); transform: translateX(-50%); margin: 0; width: min(760px, calc(100vw - 32px)); text-align: center;
+  font-size: clamp(16px, 2.3vw, 22px); line-height: 1.5; color: #fff4dc; text-shadow: 0 2px 10px rgba(0,0,0,.9); opacity: 0; transition: opacity .4s; text-wrap: balance; }
+#cine.on #caption { opacity: 1; }
+#cine .skip { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(5.5vh - 8px); font-size: 12px; color: rgba(255,255,255,.45); opacity: 0; transition: opacity .4s; }
+#cine.on .skip { opacity: 1; }
+body.cut #hud, body.cut #goal, body.cut #crosshair, body.cut #prompt, body.cut #help, body.cut #lockHint { visibility: hidden; }
+
+/* Story screens (prologue / ending) */
+#story { position: fixed; inset: 0; z-index: 70; background: radial-gradient(ellipse at center, #1c100c, #050202 75%); display: grid; place-items: center; overflow: auto;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+#fw { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#story .sin { position: relative; width: min(820px, 100%); display: flex; flex-direction: column; align-items: center; gap: 14px; }
+#story .schap { font-family: var(--f-mono); font-size: 12px; letter-spacing: .2em; color: var(--gold); }
+#story .pixwrap { width: min(100%, calc((100vh - 300px) * 16 / 9)); min-width: min(100%, 300px); aspect-ratio: 16 / 9; border: 4px solid #3a2418; border-radius: 6px; box-shadow: 0 0 0 2px #120806, 0 20px 60px rgba(0,0,0,.6); background: #000; }
+#pix { width: 100%; height: 100%; display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+#sText { margin: 0; min-height: 3.2em; max-width: 46ch; text-align: center; font-size: clamp(17px, 2.4vw, 22px); line-height: 1.6; color: #fff1d6; text-wrap: balance; }
+#sText .cur { display: inline-block; width: .5em; height: 1em; vertical-align: -0.12em; background: var(--gold); margin-left: 2px; animation: blink .8s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+#story .sbtns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+#story.ending { background: radial-gradient(ellipse at center, #241309, #050202 75%); }
+#story.ending .pixwrap { width: min(100%, calc((100vh - 420px) * 16 / 9)); }
+#story.done .pixwrap { width: min(100%, calc((100vh - 540px) * 16 / 9)); min-width: min(100%, 220px); }
+#sStats { display: flex; flex-direction: column; align-items: center; gap: 12px; animation: toastIn .5s ease-out; }
+#sStats .big { font-family: var(--f-mono); font-weight: 600; font-size: clamp(44px, 8vw, 72px); color: #ffe9a8; font-variant-numeric: tabular-nums; text-shadow: 0 0 24px rgba(255,170,60,.5); line-height: 1; }
+#sStats .lbl { font-size: 13px; color: var(--muted); letter-spacing: .1em; }
+#sStats .facts { width: min(520px, 100%); }
+#sStats .grade { font-family: var(--f-display); font-size: 22px; color: var(--neon); }
+#whiteout { position: fixed; inset: 0; z-index: 65; background: #fff8e8; opacity: 0; pointer-events: none; transition: opacity .6s; }
 
 /* Modal */
 #modal { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(10,5,4,.66); backdrop-filter: blur(3px);
@@ -245,7 +288,7 @@ button.item:hover { border-color: var(--gold); }
     <button id="btnSound" type="button">소리 켬</button>
   </div>
 </div>
-<div id="goal" hidden aria-live="polite"><span class="gk" id="goalNo">목표 1 / 6</span><span class="gt" id="goalText"></span></div>
+<div id="goal" hidden aria-live="polite"><button type="button" id="goalToggle" aria-expanded="true"><span class="gk" id="goalNo">자물쇠 0 / 6 해제</span><span class="gchev" aria-hidden="true">▾</span><kbd>G</kbd></button><span class="gt" id="goalText"></span></div>
 <div id="crosshair" hidden></div>
 <div id="prompt" hidden></div>
 <div id="help" hidden></div>
@@ -253,7 +296,20 @@ button.item:hover { border-color: var(--gold); }
 <div id="joy" hidden><div id="knob"></div></div>
 <button id="useBtn" type="button" hidden>조사</button>
 <div id="toast" aria-live="polite"></div>
+<div id="cine" aria-hidden="true"><div class="bar top"></div><div class="bar bot"></div><p id="caption" aria-live="polite"></p><span class="skip">클릭 또는 Space로 건너뛰기</span></div>
 <div id="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+
+<section id="story" hidden>
+  <canvas id="fw" aria-hidden="true"></canvas>
+  <div class="sin">
+    <div class="schap" id="sChap"></div>
+    <div class="pixwrap"><canvas id="pix" width="192" height="108" role="img" aria-label="도트 그림으로 그린 이야기 장면"></canvas></div>
+    <p id="sText" aria-live="polite"></p>
+    <div id="sStats" hidden></div>
+    <div class="sbtns" id="sBtns"><button type="button" class="btn" id="sVoice" hidden>낭독 켬</button><button type="button" class="btn" id="sSkip">건너뛰기</button><button type="button" class="btn primary" id="sNext">다음 ▶</button></div>
+  </div>
+</section>
+<div id="whiteout" aria-hidden="true"></div>
 
 <section class="screen" id="intro">
   <div class="art" role="img" aria-label="게임룸과 TIME CASINO 네온사인이 있는 카지노 테마 이미지"></div>
@@ -262,7 +318,7 @@ button.item:hover { border-color: var(--gold); }
     <h1>TIME<em>CASINO</em></h1>
     <div class="tag">쉬는 시간의 내기</div>
     <p>학교는 공부만 하던 곳이라고 기억했다. 그런데 쉬는 시간 종이 울리면 책상 위는 순식간에 판이 됐다. 묵찌빠, 카드 한 장, 별것 아닌 내기에 목숨 걸던 10분. 그 기억이 낯선 카지노가 되어 눈앞에 펼쳐졌다.</p>
-    <p>방 곳곳에 단서 여섯 개와 자물쇠 여섯 개가 흩어져 있다. 어떤 단서가 어느 자물쇠의 짝인지, 무엇부터 열지는 스스로 정해야 한다. 자물쇠를 모두 열면 출구가 열린다.</p>
+    <p>방 곳곳에 단서가 흩어져 있다. 자물쇠를 하나 열 때마다 다음 장치가 깨어나고, 그 장치의 연관 단서가 모습을 드러낸다. 어떤 단서가 어느 자물쇠의 짝인지는 스스로 알아내야 한다.</p>
     <div class="facts">
       <div><b>6</b><span>자물쇠</span></div>
       <div><b>60:00</b><span>제한 시간</span></div>
@@ -304,18 +360,39 @@ const LOCKS = [
 ];
 const LOCK_BY_ID = Object.fromEntries(LOCKS.map(l => [l.id, l]));
 
-/* Every lock and clue is out from the start and locks open in any order; matching clue to lock is the game.
-   Opening a lock plays a short reward and lights one of the six lamps over the exit. */
-const REWARDS = {
-  L1: { title: '경품 캡슐', story: '집게가 저절로 움직이더니 캡슐 하나를 떨어뜨렸다. 안에는 금색 칩 한 개.' },
-  L2: { title: '잭팟', story: '릴이 멈추자 동전이 와르르 쏟아진다.' },
-  L3: { title: '굴러 나온 룰렛 공', story: '칩 트레이가 열리자 하얀 룰렛 공 하나가 굴러 나온다.' },
-  L4: { title: '보관함 속 칩', story: '보관함 뚜껑이 열리고, 안에 쌓여 있던 칩이 반짝인다.' },
-  L5: { title: '열린 금고', story: '묵직한 금고 문이 열렸다. 안에는 칩 다발이 가득하다.' },
-  L6: { title: '1등 경품', story: '진열장이 열리고 루비를 손에 쥐었다.' },
+/* Escape-room chain: every room clue is out from the start, but the related clue for lock n+1 stays hidden
+   until lock n opens. Opening a lock plays a short cutscene: a spark flies from the opened device to the next one
+   and wakes its related clue, so the route is shown rather than told. Lock 6 has no related clue; lock 5 wakes its case. */
+const NEXT = { L1: 'L2', L2: 'L3', L3: 'L4', L4: 'L5', L5: 'L6', L6: 'exit' };
+const PREV = { L2: 'L1', L3: 'L2', L4: 'L3', L5: 'L4', L6: 'L5' };
+const isReady = id => !PREV[id] || !!state.solved[PREV[id]];
+const CAPTIONS = {
+  L1: ['집게가 저절로 움직이더니 캡슐 하나를 떨어뜨렸다.', '캡슐에서 튀어 나간 불빛에, 멈춰 있던 릴이 깨어났다.'],
+  L2: ['잭팟! 동전이 와르르 쏟아진다.', '아무도 없는 테이블에, 누군가 카드를 돌려 놓았다.'],
+  L3: ['칩 트레이가 열리자 하얀 룰렛 공이 튀어 올랐다.', '보관함 위로 액자 하나가 솟아올랐다.'],
+  L4: ['보관함 뚜껑이 열리고, 칩 사이에서 빛이 새어 나온다.', '꺼져 있던 화면에 판이 깔렸다.'],
+  L5: ['묵직한 금고 문이 열렸다.', '진열장 속 루비가 붉게 깨어났다.'],
+  L6: ['진열장이 열리고, 루비를 손에 쥐었다.', '출구 위 램프 여섯 개가 모두 초록으로 바뀌었다.'],
+};
+
+/* Story for this theme. Each week's room gets its own THEME block (prologue + epilogue scenes), so earlier chapters can be added the same way. */
+const THEME = {
+  chapter: 'BACK STAGE · 5주차',
+  title: 'TIME CASINO',
+  prologue: [
+    { scene: 'class', text: '학교는 공부만 하던 곳이라고 기억했다.' },
+    { scene: 'bell', text: '그런데 쉬는 시간 종이 울리면, 책상 위는 순식간에 판이 됐다.' },
+    { scene: 'game', text: '묵찌빠, 카드 한 장. 별것 아닌 내기에 목숨 걸던 10분.' },
+    { scene: 'morph', text: '그 기억이 낯선 카지노가 되어 눈앞에 펼쳐졌다.' },
+    { scene: 'door', text: '자물쇠 여섯 개를 열고, 사소한 즐거움을 되찾아 이곳을 나가자.' },
+  ],
+  epilogue: [
+    { scene: 'sunset', text: '마지막 문이 열리자 종이 울렸다. 쉬는 시간이 끝나는 소리였다.' },
+    { scene: 'score', text: '카지노는 사라지고, 책상 위엔 연필로 그은 묵찌빠 점수표만 남았다.' },
+    { scene: 'friends', text: '공부만 했던 게 아니었다. 사소한 내기에 웃던 10분이, 분명 거기 있었다.' },
+  ],
 };
 const FINAL_GOAL = '출구 문이 풀렸습니다. 출구로 가서 문을 여세요.';
-const openGoal = left => `잠긴 자물쇠 ${left}개. 무엇부터 열지는 자유입니다. 빨간 자물쇠 표시를 찾아, 방 안 단서 중 짝이 되는 것으로 여세요. (L 키: 자물쇠 목록)`;
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const card = (r, cls = '') => `<span class="pc ${cls}">${r}</span>`;
@@ -432,7 +509,9 @@ const FOCUS = [
   [V3(0, 5.6, 6.2), V3(0, 1.3, 8.8)],
   [V3(2.2, 5.6, 3.6), V3(2.2, 0.9, 1.6)],
 ];
-let focus;
+let focus, jewelLight;
+/* hidden related clues, keyed by the lock they belong to; revealProp() wakes them */
+const props = {};
 const M = (color, o = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness: 0.75, metalness: 0.05 }, o));
 const Bm = (color, o = {}) => new THREE.MeshBasicMaterial(Object.assign({ color, toneMapped: false }, o));
 const bx = (w, h, d) => new THREE.BoxGeometry(w, h, d);
@@ -530,7 +609,7 @@ function makeInteract(g, kind, id, label, markerH) {
 }
 function setIcon(entry, kind) { entry.sprite.material.map = ICON[kind]; entry.sprite.material.needsUpdate = true; }
 /* locked locks (and the exit once it opens) get the see-through, pulsing marker so every lock can be found */
-const isPending = e => e.kind === 'door' ? state.stage >= 6 && !state.finished : e.kind === 'lock' && !state.solved[e.id];
+const isPending = e => e.kind === 'door' ? state.stage >= 6 && !state.finished : e.kind === 'lock' && !state.solved[e.id] && isReady(e.id);
 
 /* padlock & keypad pieces */
 const brass = M(0xc9a13a, { metalness: 0.85, roughness: 0.3 });
@@ -570,7 +649,7 @@ function buildRoom() {
   pl(3, 0xffd6a0, 0.9, 7, 8.6, 3.4, -1.0);
   pl(5, 0xffb070, 0.8, 12, 7, 4.8, 5);
   pl(5, 0xffd6a0, 0.6, 5, 6.6, 3.0, 7.4);
-  pl(6, 0xff5070, 0.9, 5, -10.2, 2.4, 3.6);
+  jewelLight = new THREE.PointLight(0xff3050, 0, 5, 1); jewelLight.position.set(-10.2, 2.4, 3.6); scene.add(jewelLight);
   const spot = new THREE.SpotLight(0xffe2b0, 1.4, 12, 0.55, 0.5, 1); spot.position.set(2.2, 5.6, 1.6); spot.target.position.set(2.2, 0.9, 1.6); scene.add(spot, spot.target); zl(4, spot);
 
   /* focus light: one shadow-casting spot that glides to the lock just opened, then to the exit */
@@ -610,6 +689,8 @@ function buildRoom() {
   buildCasino();
   buildFrontWall();
   buildDust();
+  buildSparks();
+  buildOrb();
 
   /* shadows from the focus light; see-through glass and glowing surfaces stay out of it */
   scene.traverse(o => { if (o.isMesh && !o.material.isMeshBasicMaterial && !(o.material.transparent && o.material.opacity < 0.5)) { o.castShadow = true; o.receiveShadow = true; } });
@@ -813,7 +894,8 @@ function buildGameRoom() {
     mesh(bx(0.9, 0.6, 0.55), M(0xdff3ff, { transparent: true, opacity: 0.15, roughness: 0.05, depthWrite: false }), 0, 1.35, 0, g);
     mesh(bx(0.92, 0.04, 0.57), M(0xc9a13a, { metalness: 0.8, roughness: 0.3 }), 0, 1.67, 0, g);
     mesh(cy(0.16, 0.18, 0.08, 20), M(0x5b0f15, { roughness: 1 }), 0, 1.09, 0, g);
-    const ruby = mesh(new THREE.OctahedronGeometry(0.11, 0), M(0xd0102a, { metalness: 0.3, roughness: 0.15, emissive: 0x4a0008 }), 0, 1.25, 0, g);
+    const ruby = mesh(new THREE.OctahedronGeometry(0.11, 0), M(0x6a0818, { metalness: 0.3, roughness: 0.15, emissive: 0x000000 }), 0, 1.25, 0, g);
+    props.L6 = { kind: 'ruby', ruby };
     spinners.push({ m: ruby, axis: 'y', speed: 0.8 });
     const kp = plane(keypadTex(true), 0.26, 0.325, true, { roughness: 0.5 }); kp.position.set(0.3, 0.62, 0.356); g.add(kp);
     const lbl = tex(512, 128, (c, w, h) => { c.fillStyle = '#c9a13a'; c.fillRect(0, 0, w, h); c.fillStyle = '#2a1608'; c.font = '600 56px "IBM Plex Sans KR", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('1등 경품', w / 2, h / 2 + 4); });
@@ -868,8 +950,10 @@ function buildCasino() {
     mesh(bx(0.54, 0.02, 0.02), brass, 0, 0.17, 0.15, box);
     locks3d.L4 = padlock(box, 0, 0.1, 0.19, 0.75);
     const cal = tex(640, 420, (c, w, h) => { c.fillStyle = '#efe6cf'; c.fillRect(0, 0, w, h); c.strokeStyle = '#6b3a1a'; c.lineWidth = 16; c.strokeRect(0, 0, w, h); c.fillStyle = '#1d140e'; c.font = '78px "Nanum Brush Script", cursive'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('하늘과 땅이 뒤바뀌어도', w / 2, h * 0.38); c.fillText('본질은 변하지 않는다.', w / 2, h * 0.66); });
-    const calm = plane(cal, 0.48, 0.315, true); calm.position.set(0, 0.42, -0.06); calm.rotation.x = -0.25; box.add(calm);
-    mesh(bx(0.04, 0.3, 0.04), M(0x6b3a1a), 0, 0.33, -0.1, box).rotation.x = -0.25;
+    const cg = grp(0, 0.22, 0, 0, box);
+    const calm = plane(cal, 0.48, 0.315, true); calm.position.set(0, 0.2, -0.06); calm.rotation.x = -0.25; cg.add(calm);
+    mesh(bx(0.04, 0.3, 0.04), M(0x6b3a1a), 0, 0.11, -0.1, cg).rotation.x = -0.25;
+    cg.scale.set(1, 0.001, 1); cg.visible = false; props.L4 = { kind: 'pop', g: cg };
     makeInteract(box, 'lock', 'L4', '룰렛 테이블 칩 보관함', 0.82);
     g.userData.proxy = box;
     collide(2.2, 1.6, 4.8, 2.6);
@@ -890,6 +974,10 @@ function buildCasino() {
         ? tex(1600, 300, (c, W, H) => { c.fillStyle = '#0d0606'; c.fillRect(0, 0, W, H); const cw = W / 16; 'SXURMVQBICVDOERT'.split('').forEach((ch, k) => { c.fillStyle = '#2a0f0f'; rrect(c, k * cw + 6, 30, cw - 12, H - 60, 10); c.fill(); glowText(c, ch, k * cw + cw / 2, H / 2 + 4, '84px Bungee, sans-serif', '#ffd36b', 14); }); })
         : tex(512, 320, (c, W, H) => { c.fillStyle = '#10101a'; c.fillRect(0, 0, W, H); symSets[i].forEach((s, k) => { c.fillStyle = '#f7f3ea'; c.fillRect(20 + k * 164, 30, 144, H - 60); c.fillStyle = s === '7' ? '#c2401c' : '#2a1608'; c.font = `${s === 'BAR' ? 54 : 110}px Bungee, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(s, 92 + k * 164, H / 2 + 6); }); });
       const sm = plane(scr, w - 0.14, big ? 0.36 : 0.42); sm.position.set(0, 1.35, 0.38); g.add(sm); zm(2, sm.material);
+      if (big) {
+        const off = tex(1600, 300, (c, W, H) => { c.fillStyle = '#0a0505'; c.fillRect(0, 0, W, H); const cw = W / 16; for (let k = 0; k < 16; k++) { c.fillStyle = '#1a0b0b'; rrect(c, k * cw + 6, 30, cw - 12, H - 60, 10); c.fill(); c.fillStyle = '#3a2420'; c.font = '84px Bungee, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('-', k * cw + cw / 2, H / 2 + 4); } });
+        sm.material.map = off; props.L2 = { kind: 'screen', mat: sm.material, on: scr };
+      }
       mesh(cy(0.02, 0.02, 0.4, 8), M(0xcccccc, { metalness: 0.9 }), w / 2 + 0.05, 1.3, 0.1, g);
       mesh(new THREE.SphereGeometry(0.06, 12, 10), M(0xc2401c), w / 2 + 0.05, 1.52, 0.1, g);
       if (big) {
@@ -916,6 +1004,7 @@ function buildCasino() {
       c.font = '500 24px "IBM Plex Mono", monospace'; c.fillStyle = '#bfe3d2'; c.fillText('A→2→3→4→5→6→7→8→9→10→J→Q→K', 20, h - 18);
     });
     const cm = plane(ct, 1.6, 0.7, true, { transparent: true, roughness: 0.9 }); cm.rotation.x = -Math.PI / 2; cm.position.set(0, 0.935, 0.48); g.add(cm);
+    cm.visible = false; cm.material.opacity = 0; props.L3 = { kind: 'cards', m: cm };
     const tray = grp(0, 0.93, 0.02, 0, g);
     mesh(bx(0.62, 0.14, 0.26), M(0x2a1608, { roughness: 0.4 }), 0, 0.07, 0, tray);
     chips(tray, -0.18, 0.15, 0, 5, 0xd9542b); chips(tray, 0, 0.15, 0, 4, 0x2a2a2a); chips(tray, 0.18, 0.15, 0, 6, 0x3c7fc4);
@@ -973,6 +1062,8 @@ function buildCasino() {
     mesh(bx(0.08, 0.3, 0.06), M(0x1a1a1a, { metalness: 0.5 }), 0, 0.15, -0.04, dev);
     mesh(bx(0.86, 0.56, 0.04), M(0x111111, { metalness: 0.4, roughness: 0.3 }), 0, 0.52, -0.02, dev);
     const hm = plane(ht, 0.8, 0.5); hm.position.set(0, 0.52, 0.002); dev.add(hm); zm(5, hm.material);
+    const hOff = tex(512, 320, (c, w, h) => { c.fillStyle = '#060808'; c.fillRect(0, 0, w, h); c.fillStyle = '#2a3a34'; c.font = '600 34px "IBM Plex Mono", monospace'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('NO SIGNAL', w / 2, h / 2); });
+    hm.material.map = hOff; props.L5 = { kind: 'screen', mat: hm.material, on: ht };
     const safe = grp(0, 0, 0.32, 0, dev);
     mesh(bx(0.4, 0.3, 0.3), M(0x5a5d63, { metalness: 0.7, roughness: 0.35 }), 0, 0.15, 0, safe);
     const kp = plane(keypadTex(false), 0.16, 0.2, true, { roughness: 0.5 }); kp.position.set(0.08, 0.15, 0.152); safe.add(kp);
@@ -1006,6 +1097,8 @@ function buildCasino() {
 function buildFrontWall() {
   /* exit door */
   mesh(bx(2.1, 2.95, 0.12), M(0xc9a13a, { metalness: 0.7, roughness: 0.35 }), 0, 1.47, 8.96);
+  /* light beyond the door: hidden inside the closed door, glows once it swings open */
+  doorLight = mesh(new THREE.PlaneGeometry(1.6, 2.65), new THREE.MeshBasicMaterial({ color: 0xfff6e0, transparent: true, opacity: 0, toneMapped: false }), 0, 1.33, 8.895); doorLight.rotation.y = Math.PI;
   doorPivot = grp(-0.85, 0, 8.86, 0);
   const door = mesh(bx(1.7, 2.75, 0.1), M(0x5b1a12, { roughness: 0.5 }), 0.85, 1.375, 0, doorPivot);
   mesh(bx(1.3, 1.0, 0.02), M(0x4a140e, { roughness: 0.5 }), 0, 0.6, -0.06, door);
@@ -1072,6 +1165,11 @@ const sfx = {
   ok: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, 'triangle', 0.07, i * 0.09)); },
   bad: () => { tone(160, 0.25, 'square', 0.05); tone(120, 0.3, 'square', 0.04, 0.08); },
   door: () => { [392, 523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.35, 'sine', 0.07, i * 0.11)); },
+  whoosh: () => { const a = audio(); if (!a || state.muted) return; const t = a.currentTime, o = a.createOscillator(), g = a.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(900, t + 1.2); o.frequency.exponentialRampToValueAtTime(300, t + 2.3); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.03, t + 0.3); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4); o.connect(g).connect(a.destination); o.start(t); o.stop(t + 2.5); },
+  reveal: () => { [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.5, 'triangle', 0.06, i * 0.07)); tone(98, 0.6, 'sine', 0.08); },
+  blip: () => tone(660 + Math.random() * 120, 0.025, 'square', 0.012),
+  pop: () => { tone(90 + Math.random() * 60, 0.25, 'sawtooth', 0.05); tone(1800 + Math.random() * 800, 0.12, 'square', 0.012, 0.05); },
+  fanfare: () => { [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.36], [784, 0.6], [1047, 0.72]].forEach(([f, w]) => tone(f, 0.4, 'triangle', 0.07, w)); },
   power: () => { tone(70, 0.5, 'sawtooth', 0.035); [0, 0.12, 0.3, 0.38].forEach(w => tone(2200, 0.03, 'square', 0.02, w)); tone(196, 0.6, 'triangle', 0.05, 0.4); tone(294, 0.7, 'triangle', 0.05, 0.55); },
 };
 
@@ -1115,9 +1213,11 @@ function openPoster() {
 let lockUI = null;
 function openLock(id) {
   const L = LOCK_BY_ID[id];
-  if (L.related) markSeen('r_' + L.related);
+  const relOk = L.related && isReady(id);
+  if (relOk) markSeen('r_' + L.related);
   const solved = !!state.solved[id];
-  const rel = L.related ? `<div class="section-label">연관 단서 · ${esc(RELATED[L.related].title)}</div>${RELATED[L.related].html()}`
+  const rel = relOk ? `<div class="section-label">연관 단서 · ${esc(RELATED[L.related].title)}</div>${RELATED[L.related].html()}`
+    : L.related ? `<div class="section-label">연관 단서</div><div class="sleeping">아직 잠들어 있습니다. 다른 자물쇠를 열면 깨어날지도 모릅니다.</div>`
     : `<div class="meta">이 자물쇠에는 연관 단서가 없습니다. 방 안 단서 하나만으로 풀 수 있습니다.</div>`;
   openModal(`
     <div class="head"><span class="eyebrow">자물쇠 ${L.no} · ${esc(L.type)}</span><h2>${esc(L.name)}</h2>
@@ -1220,34 +1320,27 @@ function onSolved(L) {
   doorLamps[L.no - 1].material.color.setHex(0x5fd38d);
   updateHUD();
   if (n === 6) { const d = interactables.find(e => e.id === 'exit'); if (d) setIcon(d, 'door'); }
-  setTimeout(() => openReward(L, n), 1000);
+  setTimeout(() => { if (state.modal === 'lock') closeModal(false); startCut(L); }, 900);
 }
-/* the reward sheet says what happened; the focus light swings to that lock as it closes */
-function openReward(L, n) {
-  const R = REWARDS[L.id];
-  openModal(`<div class="head"><span class="eyebrow">자물쇠 ${n} / 6 해제 · ${esc(L.name)}</span><h2>${esc(R.title)}</h2></div>
-    <p class="story">${esc(R.story)} 출구 위 램프 ${n}개에 초록 불이 들어왔다.</p>
-    <div class="nextgoal"><span>${n < 6 ? '남은 자물쇠' : '마지막'}</span><b>${esc(goalText())}</b></div>
-    <div class="actions"><button class="btn primary" type="button" id="goNext">${n < 6 ? '계속 찾기' : '출구로'}</button></div>`, 'reward');
-  $('#goNext').addEventListener('click', () => closeModal());
-  afterClose = () => { focusTo = n === 6 ? 6 : L.no - 1; sfx.power(); updateGoal(true); };
+function goalText() {
+  if (state.stage >= 6) return FINAL_GOAL;
+  const clues = Object.keys(CLUES).filter(k => state.seen[k]).length;
+  return `모은 단서 ${clues} / 6 · 자물쇠를 열 때마다 다음 장치가 깨어납니다.`;
 }
-function goalText() { return state.stage < 6 ? openGoal(6 - state.stage) : FINAL_GOAL; }
 function placeGoal() { const h = $('#hud'); if (!h.hidden) $('#goal').style.top = Math.round(h.getBoundingClientRect().bottom - 4) + 'px'; }
 addEventListener('resize', placeGoal);
 function updateGoal(flash = false) {
   placeGoal();
-  $('#goalNo').textContent = state.stage < 6 ? `자물쇠 ${state.stage} / 6 해제` : '탈출';
+  $('#goalNo').textContent = state.stage < 6 ? `자물쇠 ${state.stage} / 6 해제` : '출구 열림';
   $('#goalText').textContent = goalText();
   if (flash) { const g = $('#goal'); g.classList.remove('flash'); void g.offsetWidth; g.classList.add('flash'); }
 }
 function tryDoor() {
   const n = Object.keys(state.solved).length;
   if (n < 6) { sfx.bad(); toast(`출구가 잠겨 있습니다. 자물쇠 ${n}/6 해제`); return; }
-  if (state.finished) { showEnd(); return; }
+  if (state.finished) { toast('이미 탈출했습니다. 처음부터 다시 하려면 새로고침하세요.'); return; }
   state.finalTime = elapsed(); state.finished = true; sfx.door();
-  doorOpening = 0;
-  setTimeout(showEnd, 1600);
+  doorOpening = 0; startExitWalk();
 }
 
 function locksPanel() {
@@ -1282,7 +1375,14 @@ function hintsPanel() {
     state.hint[b.dataset.h] = +b.dataset.lv; state.hintsUsed++; sfx.click(); updateHUD(); hintsPanel();
   }));
 }
+function setGoalOpen(open) {
+  $('#goal').classList.toggle('closed', !open); $('#goalToggle').setAttribute('aria-expanded', String(open));
+  try { localStorage.setItem('tc-goal-open', open ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+}
+$('#goalToggle').addEventListener('click', () => { sfx.click(); setGoalOpen($('#goal').classList.contains('closed')); });
+try { if (localStorage.getItem('tc-goal-open') === '0') setGoalOpen(false); } catch (e) { /* storage unavailable */ }
 function updateHUD() {
+  if (state.started) updateGoal();
   $('#lockCount').textContent = `${Object.keys(state.solved).length}/6`;
   $('#noteCount').textContent = Object.keys(state.seen).length;
   $('#hintCount').textContent = HINT_LIMIT - state.hintsUsed;
@@ -1311,13 +1411,343 @@ function showTimeUp() {
   $('#goOn').addEventListener('click', closeModal);
   $('#restart1').addEventListener('click', () => location.reload());
 }
-function showEnd() {
+
+/* ------------------------------------------------------------------ tweens, sparks, reveal cutscene */
+const tweens = [];
+function tween(dur, fn, instant = false) { if (instant) { fn(1); return; } fn(0); tweens.push({ t: 0, dur, fn }); }
+const ease = u => u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u);
+const bez = (a, b, c, u, out) => out.set(0, 0, 0).addScaledVector(a, (1 - u) * (1 - u)).addScaledVector(b, 2 * u * (1 - u)).addScaledVector(c, u * u);
+
+/* spark particles: one Points cloud; dead particles are parked with zero colour (additive, so invisible) */
+const PMAX = 500, parts = [];
+let sparkPts, sparkPos, sparkCol;
+function buildSparks() {
+  sparkPos = new Float32Array(PMAX * 3); sparkCol = new Float32Array(PMAX * 3);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(sparkPos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(sparkCol, 3));
+  sparkPts = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.09, map: glowTexture(), vertexColors: true, transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending, toneMapped: false }));
+  sparkPts.frustumCulled = false; sparkPts.renderOrder = 20; sparkPts.raycast = () => {}; scene.add(sparkPts);
+  for (let i = 0; i < PMAX; i++) parts.push({ life: 0 });
+}
+function burst(at, color, n = 80, speed = 2.4, up = 1.2) {
+  const c = new THREE.Color(color); let made = 0;
+  for (const p of parts) {
+    if (p.life > 0) continue;
+    const th = Math.random() * TAU, ph = Math.acos(2 * Math.random() - 1), v = speed * (0.35 + Math.random() * 0.65);
+    p.x = at.x; p.y = at.y; p.z = at.z; p.vx = Math.sin(ph) * Math.cos(th) * v; p.vy = Math.cos(ph) * v + up; p.vz = Math.sin(ph) * Math.sin(th) * v;
+    p.max = p.life = 0.7 + Math.random() * 0.8; p.r = c.r; p.g = c.g; p.b = c.b;
+    if (++made >= n) break;
+  }
+}
+function updateSparks(dt) {
+  if (!sparkPts) return;
+  parts.forEach((p, i) => {
+    if (p.life > 0) {
+      p.life -= dt; p.vy -= 3.2 * dt; p.vx *= 0.985; p.vz *= 0.985;
+      p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+      const f = Math.max(0, p.life / p.max);
+      sparkPos[i * 3] = p.x; sparkPos[i * 3 + 1] = p.y; sparkPos[i * 3 + 2] = p.z;
+      sparkCol[i * 3] = p.r * f; sparkCol[i * 3 + 1] = p.g * f; sparkCol[i * 3 + 2] = p.b * f;
+    } else { sparkCol[i * 3] = sparkCol[i * 3 + 1] = sparkCol[i * 3 + 2] = 0; }
+  });
+  sparkPts.geometry.attributes.position.needsUpdate = true; sparkPts.geometry.attributes.color.needsUpdate = true;
+}
+
+/* the travelling spark: bright core, soft halo and a fading trail */
+let orb;
+function buildOrb() {
+  const mk = (scale, op, color) => { const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture(), color, transparent: true, opacity: op, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); sp.scale.setScalar(scale); sp.renderOrder = 21; sp.visible = false; sp.raycast = () => {}; scene.add(sp); return sp; };
+  orb = { core: mk(0.35, 1, 0xfff4d0), halo: mk(1.3, 0.55, 0xffb040), trail: Array.from({ length: 18 }, (_, i) => mk(0.3 * (1 - i / 22), 0.5 * (1 - i / 18), 0xffc060)), hist: [] };
+}
+function orbAt(p, show) {
+  [orb.core, orb.halo].forEach(s => { s.visible = show; s.position.copy(p); });
+  orb.hist.unshift(p.clone()); orb.hist.length = Math.min(orb.hist.length, 40);
+  orb.trail.forEach((s, i) => { const h = orb.hist[i * 2]; s.visible = show && !!h; if (h) s.position.copy(h); });
+}
+function orbHide() { [orb.core, orb.halo, ...orb.trail].forEach(s => { s.visible = false; }); orb.hist.length = 0; }
+
+/* where each cutscene ends: the thing that wakes up and a camera spot that frames it */
+const CUT = {
+  L2: { at: V3(10.97, 1.35, -5.1), view: V3(8.7, 1.75, -5.1), color: 0xffd36b },
+  L3: { at: V3(6.4, 0.95, -4.92), view: V3(6.4, 2.55, -2.75), color: 0xbfe3d2 },
+  L4: { at: V3(2.65, 1.3, 2.42), view: V3(2.65, 1.85, 4.45), color: 0xffe9b0 },
+  L5: { at: V3(7.35, 1.45, 4.7), view: V3(5.55, 1.8, 4.7), color: 0x8cf0a8 },
+  L6: { at: V3(-11.1, 1.3, 3.6), view: V3(-9.0, 1.75, 3.6), color: 0xff3050 },
+  exit: { at: V3(0, 1.7, 8.8), view: V3(0, 1.85, 5.7), color: 0x5fd38d },
+};
+/* wake a hidden clue (or the exit). instant = skipped cutscene or debug */
+function revealProp(id, instant = false) {
+  const p = props[id];
+  if (id === 'exit') {
+    const d = interactables.find(e => e.id === 'exit'); if (d) setIcon(d, 'door');
+    tween(1.4, u => doorLamps.forEach((l, i) => l.material.color.setHex(u >= 1 || Math.floor(u * 10 + i) % 2 ? 0x5fd38d : 0x1a4a2a)), instant);
+    return;
+  }
+  if (!p) return;
+  if (p.kind === 'screen') { p.mat.map = p.on; p.mat.needsUpdate = true; tween(1.0, u => p.mat.color.setScalar(u >= 1 ? 1 : (Math.random() < 0.4 ? 0.12 : 1) * (0.3 + 0.7 * u)), instant); }
+  if (p.kind === 'cards') { p.m.visible = true; const y0 = p.m.position.y; tween(0.9, u => { p.m.material.opacity = ease(u); p.m.position.y = y0 + (1 - ease(u)) * 0.35; }, instant); }
+  if (p.kind === 'pop') { p.g.visible = true; tween(0.8, u => { const k = u >= 1 ? 1 : u < 0.7 ? ease(u / 0.7) * 1.12 : 1.12 - (u - 0.7) / 0.3 * 0.12; p.g.scale.set(1, Math.max(0.001, k), 1); }, instant); }
+  if (p.kind === 'ruby') { tween(1.2, u => { const e = ease(u); p.ruby.material.color.setHex(0xd0102a); p.ruby.material.emissive.setRGB(0.55 * e, 0, 0.06 * e); jewelLight.intensity = 1.1 * e * (u < 1 && Math.random() < 0.3 ? 0.3 : 1); }, instant); }
+}
+/* on load, wake whatever is already earned (nothing at the start; used by the debug hook) */
+function syncReveals() { for (const id in PREV) if (isReady(id)) revealProp(id, true); }
+
+let cut = null;
+const _o = new THREE.Vector3(), _c = new THREE.Vector3(), _l = new THREE.Vector3();
+function playerEye() { return V3(player.x, player.eye, player.z); }
+function startCut(L) {
+  const nid = NEXT[L.id], T = CUT[nid];
+  const entry = interactables.find(e => e.id === L.id);
+  const src = new THREE.Vector3(); entry.sprite.getWorldPosition(src); src.y -= 0.45;
+  const startPos = camera.position.clone();
+  const startLook = startPos.clone().add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+  const ctrl = src.clone().lerp(T.at, 0.5); ctrl.y = Math.max(src.y, T.at.y) + 3.0;
+  const camMid = startPos.clone().lerp(T.view, 0.5); camMid.y += 1.4;
+  cut = { t: 0, L, nid, T, src, ctrl, startPos, startLook, camMid, revealed: false, shot: false, line: 0 };
+  state.cut = true; keys.clear(); vel.x = vel.z = 0;
+  if (document.pointerLockElement) document.exitPointerLock();
+  document.body.classList.add('cut'); $('#cine').classList.add('on');
+  $('#caption').textContent = CAPTIONS[L.id][0];
+  burst(src, 0xffd36b, 90, 2.0); sfx.ok();
+}
+function updateCut(dt) {
+  const c = cut; c.t += dt; const t = c.t;
+  if (t < 0.7) { _o.copy(c.src); _o.y += Math.sin(t * 9) * 0.03; orbAt(_o, true); orb.core.scale.setScalar(0.35 * ease(t / 0.7) + 0.05); }
+  else if (t < 3.1) { if (!c.shot) { c.shot = true; sfx.whoosh(); } bez(c.src, c.ctrl, c.T.at, ease((t - 0.7) / 2.4), _o); orbAt(_o, true); }
+  else {
+    if (!c.revealed) { c.revealed = true; orbHide(); revealProp(c.nid); burst(c.T.at, c.T.color, 140, 2.6); sfx.reveal(); $('#caption').textContent = CAPTIONS[c.L.id][1]; }
+  }
+  const eye = playerEye();
+  if (t < 3.1) { bez(c.startPos, c.camMid, c.T.view, ease(t / 3.1), _c); _l.copy(c.startLook).lerp(_o, ease(t / 0.7)); }
+  else if (t < 5.0) { _c.copy(c.T.view); _l.copy(c.T.at); }
+  else if (t < 6.1) { const u = ease((t - 5.0) / 1.1); _c.copy(c.T.view).lerp(eye, u); const fin = eye.clone().add(c.T.at.clone().sub(eye).normalize().multiplyScalar(3)); _l.copy(c.T.at).lerp(fin, u); }
+  else { endCut(); return; }
+  camera.position.copy(_c); camera.lookAt(_l);
+}
+function endCut(skipped = false) {
+  const c = cut; if (!c) return;
+  if (!c.revealed) { revealProp(c.nid, true); burst(c.T.at, c.T.color, 60, 2); }
+  orbHide();
+  /* leave the player facing what just woke up, so the next step is right in front of them */
+  const eye = playerEye(), d = c.T.at.clone().sub(eye);
+  player.yaw = Math.atan2(-d.x, -d.z); player.pitch = Math.max(-1.2, Math.min(1.2, Math.atan2(d.y, Math.hypot(d.x, d.z))));
+  focusTo = c.nid === 'exit' ? 6 : LOCK_BY_ID[c.nid].no - 1;
+  cut = null; state.cut = false;
+  document.body.classList.remove('cut'); $('#cine').classList.remove('on');
+  updateGoal(true); updateLockHint();
+  if (c.nid === 'exit') toast('모든 자물쇠가 열렸습니다. 출구로!', true);
+  void skipped;
+}
+function skipCut() { if (cut && cut.t > 0.4) endCut(true); }
+
+/* ------------------------------------------------------------------ pixel-art story scenes (192×108, scaled up crisp) */
+const pixG = $('#pix').getContext('2d');
+const PW = 192, PH = 108;
+const P = (c, x, y, w = 1, h = 1) => { pixG.fillStyle = c; pixG.fillRect(Math.round(x), Math.round(y), w, h); };
+const ptext = (txt, x, y, c, size = 8, align = 'center') => { pixG.font = `700 ${size}px "IBM Plex Sans KR", sans-serif`; pixG.textAlign = align; pixG.textBaseline = 'middle'; pixG.fillStyle = c; pixG.fillText(txt, x, y); };
+const SKIN = '#f2c79a';
+function kid(x, y, shirt, hair, t, o = {}) {
+  y += o.jump ? -Math.abs(Math.sin(t * 9 + x)) * 5 : o.bob ? Math.round(Math.sin(t * 3 + x) * 0.6) : 0;
+  if (o.back) { P(hair, x + 1, y, 6, 6); } else { P(hair, x + 1, y, 6, 2); P(SKIN, x + 1, y + 2, 6, 4); P(hair, x + 1, y + 2, 1, 2); P(hair, x + 6, y + 2, 1, 2); P('#2a1a12', x + 2, y + 3); P('#2a1a12', x + 5, y + 3); if (o.smile) P('#a0402a', x + 3, y + 5, 2, 1); }
+  P(shirt, x, y + 6, 8, 5);
+  if (o.armsUp) { P(shirt, x - 1, y + 2, 1, 5); P(shirt, x + 8, y + 2, 1, 5); P(SKIN, x - 1, y + 1); P(SKIN, x + 8, y + 1); }
+}
+function classroom(t, mood = 'day') {
+  const sun = mood === 'sunset';
+  P(sun ? '#c98a5a' : '#cdb991', 0, 0, PW, 72); P(sun ? '#6a3d26' : '#7a5236', 0, 72, PW, 36);
+  for (let x = 0; x < PW; x += 16) P(sun ? '#5a3220' : '#6a4630', x, 72, 1, 36);
+  P('#4a3020', 0, 70, PW, 2);
+  P('#6b4426', 34, 10, 96, 40); P(sun ? '#24382c' : '#1f3d2e', 37, 13, 90, 34); P('#8a6a40', 34, 50, 96, 2);
+  P('#4a7ab0', 150, 12, 34, 38); P(sun ? '#ff9a50' : '#8fc6ee', 152, 14, 30, 34); P('#e8e0cc', 166, 12, 2, 38); P('#e8e0cc', 150, 30, 34, 2);
+  P(sun ? '#ffdd88' : '#fff2a0', sun ? 170 : 174, sun ? 38 : 18, 6, 6);
+  P('#f4ead6', 10, 14, 14, 14); P('#2a1a12', 16, 16, 1, 6); P('#2a1a12', 16, 21, 4, 1);
+  const a = t * (sun ? 0.4 : 2.5); P('#c2401c', 16 + Math.round(Math.cos(a) * 5), 21 + Math.round(Math.sin(a) * 5));
+}
+function desks(t, o = {}) {
+  const rows = [[24, 76], [70, 76], [116, 76], [10, 92], [58, 92], [106, 92], [154, 92]];
+  const cols = ['#2f4a7a', '#7a2f3a', '#2f6a4a', '#6a5a2a', '#4a2f7a', '#2f6a6a', '#7a4a2f'];
+  rows.forEach(([x, y], i) => {
+    if (!o.empty) kid(x + 6, y - 8, cols[i], i % 3 ? '#2a1a12' : '#4a2a16', t, { back: !o.front, jump: o.jump, armsUp: o.jump, bob: !o.jump });
+    P('#8a5a30', x, y + 2, 22, 3); P('#5a3a1e', x + 2, y + 5, 2, 8); P('#5a3a1e', x + 18, y + 5, 2, 8);
+  });
+}
+function casino(t, alpha = 1) {
+  pixG.globalAlpha = alpha;
+  P('#2a0d0d', 0, 0, PW, 70); P('#5b0f15', 0, 70, PW, 38);
+  for (let x = -8; x < PW; x += 12) for (let y = 74; y < PH; y += 10) P('#7a1a20', x + ((y / 10) % 2) * 6, y, 2, 2);
+  P('#7a1d12', 46, 6, 100, 30); P('#1a0606', 49, 9, 94, 24);
+  const on = Math.floor(t * 3) % 2;
+  ptext('TIME', 96, 16, on ? '#ffd36b' : '#c9a040', 9); ptext('CASINO', 96, 27, on ? '#ff6b3d' : '#c05030', 9);
+  for (let x = 46; x <= 146; x += 5) { P(((x / 5) % 2) ^ on ? '#fff2c0' : '#6a4a20', x, 4); P(((x / 5) % 2) ^ on ? '#6a4a20' : '#fff2c0', x, 37); }
+  const cx = 52, cy0 = 86;
+  P('#40200f', cx - 16, cy0 - 3, 32, 10);
+  for (let i = 0; i < 12; i++) { const a = i / 12 * TAU + t * 2; P(i % 2 ? '#a8201c' : '#141010', cx + Math.cos(a) * 10, cy0 + Math.sin(a) * 3, 2, 2); }
+  P('#c9a13a', cx - 1, cy0 - 1, 2, 2);
+  [[150, 46], [166, 46]].forEach(([x, y], i) => { P('#2d2a40', x, y, 14, 26); P('#c9a13a', x, y, 14, 2); P('#10101a', x + 2, y + 6, 10, 6); P(Math.floor(t * 6 + i) % 3 ? '#ffd36b' : '#ff6b3d', x + 3 + (Math.floor(t * 8 + i * 3) % 3) * 3, y + 8, 2, 2); });
+  pixG.globalAlpha = 1;
+}
+const SCENES = {
+  class(t) { classroom(t); const n = Math.min(14, Math.floor(t * 4)); for (let i = 0; i < n; i++) P('#e8e8e0', 42 + i * 6, 22 + (i % 3) * 7, 4, 1); ptext('1교시', 82, 42, '#d8e8d0', 7); desks(t); },
+  bell(t) {
+    classroom(t); ptext('쉬는 시간!', 82, 30, '#ffd36b', 10);
+    const sw = Math.sin(t * 18) * 2; P('#c9a13a', 92 + sw, 52, 8, 6); P('#8a6a20', 95 + sw, 58, 2, 2);
+    if (Math.floor(t * 4) % 2) { ptext('딩동댕', 118, 56, '#fff2a0', 8); }
+    desks(t, { jump: true, front: true });
+  },
+  game(t) {
+    P('#cdb991', 0, 0, PW, 40); P('#8a5a30', 0, 40, PW, 68); P('#6a4224', 0, 40, PW, 2);
+    kid(20, 14, '#2f4a7a', '#2a1a12', t, { smile: true, bob: true }); kid(164, 14, '#7a2f3a', '#4a2a16', t, { smile: true, bob: true });
+    P('#2f4a7a', 14, 26, 20, 14); P('#7a2f3a', 158, 26, 20, 14);
+    const hand = (x, flip, k) => {
+      P(SKIN, x, 62, 12, 10);
+      if (k === 0) { P('#d9a87a', x + 2, 64, 8, 1); }
+      if (k === 1) { P(SKIN, x + (flip ? -6 : 12), 60, 6, 2); P(SKIN, x + (flip ? -6 : 12), 66, 6, 2); }
+      if (k === 2) { for (let i = 0; i < 5; i++) P(SKIN, x + (flip ? -5 : 12), 61 + i * 2, 5, 1); }
+    };
+    const k = Math.floor(t * 2) % 3; hand(64, false, k); hand(116, true, (k + 1 + Math.floor(t / 1.5)) % 3);
+    ptext(['묵!', '찌!', '빠!'][k], 96, 50, '#fff2a0', 9);
+    [[40, 84, '#fbf8f1'], [48, 86, '#fbf8f1'], [56, 84, '#fbf8f1']].forEach(([x, y, c], i) => { P(c, x, y, 8, 12); P(i === 1 ? '#c2401c' : '#2a1608', x + 3, y + 4, 2, 3); });
+    for (let i = 0; i < 6; i++) P(['#ff6b3d', '#5fd38d', '#ffd36b'][i % 3], 132 + (i % 3) * 7, 86 + Math.floor(i / 3) * 6, 5, 4);
+    if (Math.floor(t * 2) % 3 === 2) ptext('이겼다!', 150, 74, '#ffd36b', 8);
+  },
+  morph(t) { classroom(t); desks(t, { back: true }); const a = Math.min(1, Math.max(0, (t - 0.6) / 2.2)); for (let y = 0; y < PH; y += 2) { if (Math.random() < a * 0.2) P('rgba(255,180,90,.5)', 0, y, PW, 1); } casino(t, a); },
+  door(t) {
+    casino(t, 1); P('#1a0606', 0, 40, PW, 34);
+    P('#c9a13a', 80, 30, 32, 44); P('#5b1a12', 83, 33, 26, 41); P('#c9a13a', 104, 52, 2, 2);
+    const lit = Math.min(6, Math.floor(t * 1.6));
+    for (let i = 0; i < 6; i++) P(i < lit ? '#5fd38d' : '#7a1a14', 81 + i * 6, 24, 4, 4);
+    ptext('EXIT', 96, 18, '#5fd38d', 7);
+    kid(92, 82 - Math.min(10, t * 2), '#2f4a7a', '#2a1a12', t, { back: true });
+  },
+  sunset(t) { classroom(t, 'sunset'); desks(t, { empty: true }); for (let i = 0; i < 12; i++) { const x = (i * 37 + t * 6) % PW, y = 20 + ((i * 53) % 50) + Math.sin(t + i) * 2; P('rgba(255,230,160,.7)', x, y); } ptext('딩동댕', 82, 30, Math.floor(t * 3) % 2 ? '#ffd36b' : '#c9a040', 9); },
+  score(t) {
+    P('#8a5a30', 0, 0, PW, PH); for (let x = 0; x < PW; x += 24) P('#7a4e28', x, 0, 1, PH);
+    P('#f4ecd8', 40, 14, 112, 80); for (let y = 26; y < 92; y += 10) P('#c8d8e8', 42, y, 108, 1); P('#e09090', 56, 14, 1, 80);
+    ptext('묵찌빠 점수표', 104, 21, '#3a2a1a', 8);
+    ptext('A', 50, 40, '#2a1608', 8); ptext('B', 50, 60, '#2a1608', 8);
+    const tallies = (n, y) => { for (let i = 0; i < n; i++) { const g = Math.floor(i / 5), k = i % 5; if (k < 4) P('#2a2a2a', 64 + g * 18 + k * 3, y - 5, 1, 9); else P('#2a2a2a', 63 + g * 18, y, 13, 1); } };
+    tallies(Math.min(12, Math.floor(t * 4)), 40); tallies(Math.min(9, Math.floor(t * 3)), 60);
+    const px = 64 + Math.min(11, Math.floor(t * 4)) * 3; P('#f2c14e', px + 10, 66 - (Math.floor(t * 8) % 2), 3, 18); P('#2a1a12', px + 10, 84, 3, 2);
+  },
+  friends(t) {
+    const gr = pixG.createLinearGradient(0, 0, 0, PH); gr.addColorStop(0, '#ff8a4a'); gr.addColorStop(1, '#5a2a3a'); pixG.fillStyle = gr; pixG.fillRect(0, 0, PW, PH);
+    P('#ffd88a', 86, 44, 20, 20); P('#3a1a1a', 0, 80, PW, 28);
+    for (let i = 0; i < 4; i++) { const x = 40 + i * 34; kid(x, 64, '#1a0e0e', '#1a0e0e', t + i, { jump: true, armsUp: i % 2 === 0 }); }
+    for (let i = 0; i < 8; i++) { const x = (i * 29 + t * 12) % PW, y = 10 + (i * 17) % 40; P(i % 2 ? '#fff2c0' : '#ffd36b', x, y); }
+  },
+};
+
+/* ------------------------------------------------------------------ narration (typewriter + optional Korean TTS) */
+const canSpeak = 'speechSynthesis' in window;
+let koVoice = null, voiceOn = true;
+try { voiceOn = localStorage.getItem('tc-voice') !== '0'; } catch (e) { /* storage unavailable */ }
+function pickVoice() { if (!canSpeak) return; const vs = speechSynthesis.getVoices(); koVoice = vs.find(v => /^ko/i.test(v.lang)) || null; $('#sVoice').hidden = !koVoice; $('#sVoice').textContent = voiceOn ? '낭독 끄기' : '낭독 켜기'; }
+if (canSpeak) { pickVoice(); speechSynthesis.addEventListener?.('voiceschanged', pickVoice); }
+function speak(text, onend) {
+  if (!canSpeak || !koVoice || !voiceOn || state.muted) return false;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.voice = koVoice; u.lang = koVoice.lang; u.rate = 1.0; u.pitch = 1.0;
+  u.onend = onend; u.onerror = onend; speechSynthesis.speak(u); return true;
+}
+function stopSpeak() { if (canSpeak) speechSynthesis.cancel(); }
+$('#sVoice').addEventListener('click', () => {
+  voiceOn = !voiceOn; try { localStorage.setItem('tc-voice', voiceOn ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+  pickVoice(); if (!voiceOn) stopSpeak(); else if (story) story.say();
+});
+
+let story = null;
+function runStory(lines, { chapter, ending = false, onDone }) {
+  const el = $('#story'); el.hidden = false; el.classList.toggle('ending', ending);
+  $('#sChap').textContent = chapter; $('#sStats').hidden = true; $('#sNext').hidden = false; $('#sSkip').hidden = false;
+  let i = 0, typed = 0, tLine = 0, holdT = 0, spoken = true, done = false, typeAcc = 0;
+  const S = {
+    sceneT: 0,
+    say() { spoken = !speak(lines[i].text, () => { spoken = true; }); },
+    show(k) { i = k; typed = 0; tLine = 0; holdT = 0; S.sceneT = 0; S.say(); },
+    next() { const full = lines[i].text; if (typed < full.length) { typed = full.length; return; } if (i < lines.length - 1) S.show(i + 1); else S.finish(); },
+    skip() { S.finish(); },
+    finish() { if (done) return; done = true; stopSpeak(); story = null; onDone(); },
+    update(dt) {
+      const full = lines[i].text; tLine += dt; S.sceneT += dt;
+      if (typed < full.length) { typeAcc += dt; while (typeAcc > 0.055 && typed < full.length) { typeAcc -= 0.055; typed++; if (spoken && full[typed - 1] !== ' ' && typed % 2) sfx.blip(); } }
+      else if (spoken && (i < lines.length - 1 || ending)) { holdT += dt; if (holdT > (koVoice && voiceOn ? 0.7 : 1.9)) S.next(); }
+      $('#sNext').textContent = i === lines.length - 1 && !ending ? '입장하기 ▶' : '다음 ▶';
+      $('#sText').innerHTML = esc(full.slice(0, typed)) + '<span class="cur"></span>';
+      (SCENES[lines[i].scene] || SCENES.class)(S.sceneT);
+    },
+  };
+  story = S; S.show(0);
+}
+$('#sNext').addEventListener('click', () => { sfx.click(); story?.next(); });
+$('#sSkip').addEventListener('click', () => { sfx.click(); story?.skip(); });
+$('#pix').addEventListener('click', () => story?.next());
+
+/* ------------------------------------------------------------------ escape: walk out, white-out, fireworks, epilogue, time */
+let exitWalk = null, doorLight;
+function startExitWalk() {
+  const from = camera.position.clone(), look0 = from.clone().add(new THREE.Vector3(0, 0, -3).applyQuaternion(camera.quaternion));
+  exitWalk = { t: 0, from, look0 };
+  if (document.pointerLockElement) document.exitPointerLock();
+  document.body.classList.add('cut'); $('#cine').classList.add('on'); $('#caption').textContent = '문이 열렸다. 밖에서 종소리가 들린다.';
+}
+function updateExitWalk(dt) {
+  const w = exitWalk; w.t += dt; const t = w.t;
+  const doorLook = V3(0, 1.5, 9.5), stand = V3(0, 1.65, 7.3), through = V3(0, 1.65, 8.75);
+  if (t < 1.4) { camera.position.copy(w.from).lerp(stand, ease(t / 1.4)); _l.copy(w.look0).lerp(doorLook, ease(t / 0.9)); }
+  else { camera.position.copy(stand).lerp(through, ease((t - 1.4) / 1.6)); _l.copy(doorLook); }
+  camera.lookAt(_l);
+  doorLight.material.opacity = Math.min(1, t / 1.2);
+  if (t > 2.2) $('#whiteout').style.opacity = '1';
+  if (t > 3.1) { exitWalk = null; showEnding(); }
+}
+const fw = { on: false, rockets: [], sparks: [], confetti: [], next: 0, t: 0, g: null };
+function fwStart() {
+  const c = $('#fw'); c.width = innerWidth * Math.min(2, devicePixelRatio || 1); c.height = innerHeight * Math.min(2, devicePixelRatio || 1);
+  fw.g = c.getContext('2d'); fw.on = true; fw.t = 0; fw.next = 0.2; fw.rockets.length = fw.sparks.length = 0;
+  const W = c.width, H = c.height, cols = ['#ffd36b', '#ff6b3d', '#5fd38d', '#5fb0ea', '#f5e6c8', '#ff8ad8'];
+  fw.confetti = Array.from({ length: 160 }, () => ({ x: Math.random() * W, y: -Math.random() * H * 0.8, vy: (60 + Math.random() * 120) * (W / 1200), vx: (Math.random() - 0.5) * 60, r: Math.random() * TAU, vr: (Math.random() - 0.5) * 8, s: (5 + Math.random() * 6) * (W / 1200), c: cols[(Math.random() * cols.length) | 0] }));
+  fw.cols = cols;
+}
+function fwUpdate(dt) {
+  if (!fw.on) return;
+  const g = fw.g, W = g.canvas.width, H = g.canvas.height, k = W / 1200;
+  fw.t += dt; fw.next -= dt;
+  if (fw.next <= 0 && fw.t < 30) { fw.next = 0.35 + Math.random() * 0.6; fw.rockets.push({ x: W * (0.15 + Math.random() * 0.7), y: H, vy: -(H * (0.9 + Math.random() * 0.35)), c: fw.cols[(Math.random() * fw.cols.length) | 0] }); }
+  g.globalCompositeOperation = 'destination-out'; g.fillStyle = 'rgba(0,0,0,0.22)'; g.fillRect(0, 0, W, H);
+  g.globalCompositeOperation = 'lighter';
+  for (let i = fw.rockets.length - 1; i >= 0; i--) {
+    const r = fw.rockets[i]; r.y += r.vy * dt; r.vy += H * 0.9 * dt;
+    g.fillStyle = '#ffe6b0'; g.fillRect(r.x - 2 * k, r.y, 4 * k, 10 * k);
+    if (r.vy > -H * 0.08) { fw.rockets.splice(i, 1); sfx.pop(); const n = 70 + (Math.random() * 40 | 0); for (let j = 0; j < n; j++) { const a = j / n * TAU, v = (140 + Math.random() * 220) * k; fw.sparks.push({ x: r.x, y: r.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1.2 + Math.random() * 0.6, c: Math.random() < 0.2 ? '#fff4d8' : r.c }); } }
+  }
+  for (let i = fw.sparks.length - 1; i >= 0; i--) {
+    const p = fw.sparks[i]; p.life -= dt; if (p.life <= 0) { fw.sparks.splice(i, 1); continue; }
+    p.vx *= 0.985; p.vy = p.vy * 0.985 + 160 * k * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    g.globalAlpha = Math.min(1, p.life); g.fillStyle = p.c; g.beginPath(); g.arc(p.x, p.y, 2.4 * k, 0, TAU); g.fill();
+  }
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+  if (fw.t < 9) for (const q of fw.confetti) {
+    q.y += q.vy * dt; q.x += q.vx * dt + Math.sin(fw.t * 3 + q.r) * 20 * k * dt; q.r += q.vr * dt;
+    g.save(); g.translate(q.x, q.y); g.rotate(q.r); g.fillStyle = q.c; g.fillRect(-q.s / 2, -q.s / 4, q.s, q.s / 2); g.restore();
+  }
+}
+function grade(t) { return t <= 20 * 60 ? 'S' : t <= 35 * 60 ? 'A' : t <= 50 * 60 ? 'B' : t <= 60 * 60 ? 'C' : 'D'; }
+function showEnding() {
+  $('#hud').hidden = true; $('#goal').hidden = true; $('#crosshair').hidden = true; $('#help').hidden = true; $('#joy').hidden = true; $('#useBtn').hidden = true;
+  document.body.classList.remove('cut'); $('#cine').classList.remove('on');
+  fwStart(); sfx.fanfare();
+  runStory(THEME.epilogue, { chapter: 'ESCAPED · ' + THEME.title, ending: true, onDone: showStats });
+  setTimeout(() => { $('#whiteout').style.opacity = '0'; }, 120);
+}
+function showStats() {
   const t = state.finalTime, inTime = t <= TIME_LIMIT;
-  openModal(`<div class="head"><span class="eyebrow">ESCAPED</span><h2 style="font-family:var(--f-display);font-weight:400;font-size:38px;color:#ffe9a8">탈출 성공</h2>
-      <span class="meta">쉬는 시간 10분의 내기처럼, 사소한 즐거움은 여전히 거기 있었다.</span></div>
-    <div class="facts"><div><b>${fmt(t)}</b><span>${inTime ? '탈출 기록' : '기록 (시간 초과)'}</span></div><div><b>${state.hintsUsed}</b><span>사용한 힌트</span></div><div><b>${state.wrong}</b><span>오답</span></div></div>
-    <div class="actions"><button class="btn" type="button" id="stay">방 둘러보기</button><button class="btn primary" type="button" id="restart2">처음부터 다시</button></div>`);
-  $('#stay').addEventListener('click', closeModal);
+  $('#sNext').hidden = true; $('#sSkip').hidden = true; $('#story').classList.add('done');
+  $('#sText').textContent = '탈출 성공';
+  const st = $('#sStats'); st.hidden = false;
+  st.innerHTML = `<span class="lbl">${inTime ? '탈출까지 걸린 시간' : '걸린 시간 (제한 시간 초과)'}</span><span class="big">${fmt(t)}</span>
+    <div class="facts"><div><b>${state.hintsUsed}</b><span>사용한 힌트</span></div><div><b>${state.wrong}</b><span>오답</span></div><div><b class="grade">${inTime ? grade(t) : '—'}</b><span>등급</span></div></div>
+    <div class="actions"><button class="btn" type="button" id="stay">방 둘러보기</button><button class="btn primary" type="button" id="restart2">처음부터 다시</button></div>`;
+  $('#stay').addEventListener('click', () => { fw.on = false; $('#story').hidden = true; $('#hud').hidden = false; $('#crosshair').hidden = false; $('#help').hidden = isTouch; if (isTouch) { $('#joy').hidden = false; $('#useBtn').hidden = false; } player.x = 0; player.z = 6.6; player.yaw = Math.PI; updateLockHint(); });
   $('#restart2').addEventListener('click', () => location.reload());
 }
 
@@ -1360,13 +1790,16 @@ document.addEventListener('mousemove', e => {
   player.yaw -= dx * SENS; player.pitch = Math.max(-1.45, Math.min(1.45, player.pitch - dy * SENS));
 });
 function updateLockHint() {
-  $('#lockHint').hidden = !(state.started && !state.modal && !dragMode && !locked);
+  $('#lockHint').hidden = !(state.started && !state.modal && !cut && !exitWalk && !dragMode && !locked);
+  $('#lockHint b').textContent = lockWorked ? '클릭해서 계속' : '클릭해서 시작';
   $('#help').innerHTML = dragMode
     ? '<kbd>WASD</kbd> 이동 · <kbd>Shift</kbd> 달리기 · 드래그로 둘러보기 · <kbd>클릭</kbd>/<kbd>E</kbd> 조사 · <kbd>N</kbd> 수첩 · <kbd>H</kbd> 힌트'
     : '<kbd>WASD</kbd> 이동 · <kbd>Shift</kbd> 달리기 · <kbd>마우스</kbd> 시점 · <kbd>클릭</kbd>/<kbd>E</kbd> 조사 · <kbd>N</kbd> 수첩 · <kbd>H</kbd> 힌트 · <kbd>Esc</kbd> 커서';
 }
 
 canvasEl.addEventListener('pointerdown', e => {
+  if (cut) { skipCut(); return; }
+  if (exitWalk) return;
   if (!state.started || state.modal) return;
   if (!dragMode && e.pointerType === 'mouse') {
     if (!locked) { requestLock(); return; }
@@ -1395,6 +1828,9 @@ canvasEl.addEventListener('pointercancel', endLook);
 canvasEl.addEventListener('pointerleave', () => { ptr.inCanvas = false; });
 
 addEventListener('keydown', e => {
+  if (story) { if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowRight') { e.preventDefault(); story.next(); } else if (e.code === 'Escape') story.skip(); return; }
+  if (cut) { if (e.code === 'Space' || e.code === 'Enter' || e.code === 'Escape' || e.code === 'KeyE') { e.preventDefault(); skipCut(); } return; }
+  if (exitWalk) return;
   if (state.modal) {
     if (e.key === 'Escape') { closeModal(false); return; }
     if (state.modal === 'lock' && lockUI) {
@@ -1411,6 +1847,7 @@ addEventListener('keydown', e => {
   if (k === 'KeyN') { sfx.click(); notesPanel(); return; }
   if (k === 'KeyH') { sfx.click(); hintsPanel(); return; }
   if (k === 'KeyL') { sfx.click(); locksPanel(); return; }
+  if (k === 'KeyG') { sfx.click(); setGoalOpen($('#goal').classList.contains('closed')); return; }
   keys.add(k);
 });
 addEventListener('keyup', e => keys.delete(e.code));
@@ -1425,7 +1862,7 @@ if (isTouch) {
   const end = e => { if (joy.id !== e.pointerId) return; joy.id = null; joy.x = joy.y = 0; K.style.transform = ''; };
   J.addEventListener('pointerup', end); J.addEventListener('pointercancel', end);
   function moveJoy(e) { const r = J.getBoundingClientRect(); let dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2); const m = Math.hypot(dx, dy), max = r.width / 2 - 10; if (m > max) { dx *= max / m; dy *= max / m; } joy.x = dx / max; joy.y = dy / max; K.style.transform = `translate(${dx}px, ${dy}px)`; }
-  $('#useBtn').addEventListener('click', () => { if (!state.modal) interactNow(); });
+  $('#useBtn').addEventListener('click', () => { if (cut) skipCut(); else if (!state.modal && !exitWalk) interactNow(); });
 }
 
 /* picking */
@@ -1474,7 +1911,7 @@ function tryInteract(hit) {
 }
 let pickFrame = 0;
 function updateHover() {
-  if (!state.started || state.modal) { $('#prompt').hidden = true; return; }
+  if (!state.started || state.modal || cut || exitWalk) { $('#prompt').hidden = true; return; }
   if (++pickFrame % 2) return;
   const useMouse = dragMode && !isTouch && ptr.mouse && ptr.inCanvas && !look;
   const hit = aimPick();
@@ -1527,8 +1964,9 @@ const _v = new THREE.Vector3();
 
 /* animation */
 function animate(t, dt) {
-  camera.position.set(player.x, player.eye + Math.sin(bob) * 0.03 * bobAmp, player.z);
-  camera.rotation.set(player.pitch, player.yaw, 0);
+  if (!cut && !exitWalk) { camera.position.set(player.x, player.eye + Math.sin(bob) * 0.03 * bobAmp, player.z); camera.rotation.set(player.pitch, player.yaw, 0); }
+  for (let i = tweens.length - 1; i >= 0; i--) { const w = tweens[i]; w.t += dt; const u = Math.min(1, w.t / w.dur); w.fn(u); if (u >= 1) tweens.splice(i, 1); }
+  updateSparks(dt);
   for (const s of spinners) s.m.rotation[s.axis] += s.speed * dt;
   for (const m of moles) m.m.position.y = m.base + Math.max(0, Math.sin(t * 2 + m.ph)) * 0.12;
   blinkT += dt;
@@ -1556,8 +1994,12 @@ function animate(t, dt) {
 function loop(now) {
   requestAnimationFrame(loop);
   const dt = Math.min(0.05, (now - last) / 1000 || 0); last = now;
-  if (state.started && !state.modal) move(dt);
+  if (state.started && !state.modal && !cut && !exitWalk) move(dt);
   animate(now / 1000, dt);
+  if (cut) updateCut(dt);
+  if (story) story.update(dt);
+  fwUpdate(dt);
+  if (exitWalk) updateExitWalk(dt);
   updateHover();
   updateTimer();
   renderer.render(scene, camera);
@@ -1565,7 +2007,7 @@ function loop(now) {
 addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
 
 /* test hook: only with #debug in the URL, so regular players can't skip locks from the console */
-if (location.hash === '#debug') window.__timeCasino = { state, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, ZONES, aimPick, teleport: (x, z, yaw = 0, pitch) => { player.x = x; player.z = z; player.yaw = yaw; if (pitch !== undefined) player.pitch = pitch; } };
+if (location.hash === '#debug') window.__timeCasino = { state, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, ZONES, aimPick, revealProp, startCut: id => startCut(LOCK_BY_ID[id]), skipCut, runStory, showEnding, teleport: (x, z, yaw = 0, pitch) => { player.x = x; player.z = z; player.yaw = yaw; if (pitch !== undefined) player.pitch = pitch; } };
 
 /* ------------------------------------------------------------------ boot */
 async function loadFonts() {
@@ -1580,13 +2022,17 @@ async function loadFonts() {
   requestAnimationFrame(loop);
   const sb = $('#startBtn'); sb.disabled = false; sb.textContent = '입장하기';
   sb.addEventListener('click', () => {
-    audio(); sfx.click();
-    $('#intro').hidden = true; $('#hud').hidden = false; $('#help').hidden = isTouch; $('#crosshair').hidden = false; $('#goal').hidden = false; updateGoal(true);
+    audio(); sfx.click(); pickVoice();
+    $('#intro').hidden = true;
+    runStory(THEME.prologue, { chapter: THEME.chapter, onDone: beginGame });
+  });
+  function beginGame() {
+    $('#story').hidden = true; $('#hud').hidden = false; $('#help').hidden = isTouch; $('#crosshair').hidden = false; $('#goal').hidden = false; updateGoal(true);
     if (isTouch) { $('#joy').hidden = false; $('#useBtn').hidden = false; }
     state.started = true; state.t0 = performance.now();
     updateLockHint(); requestLock();
-    toast('물음표는 단서, 빨간 자물쇠는 잠긴 장치입니다. 순서는 자유예요.');
-  });
+    toast('물음표는 방 안 단서, 빛나는 자물쇠가 지금 열 수 있는 장치입니다.');
+  }
 })();
 })();
 </script>
