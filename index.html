@@ -279,7 +279,7 @@ button.item:hover { border-color: var(--gold); }
 <div id="vignette"></div>
 
 <div id="hud" hidden>
-  <div class="hud-left"><span class="brand">TIME CASINO</span><span class="sub">5주차 · 쉬는 시간의 내기</span></div>
+  <div class="hud-left"><span class="brand">TIME CASINO</span><span class="sub">6주차 · 쉬는 시간의 내기</span></div>
   <div id="timer" aria-label="남은 시간">60:00</div>
   <div class="hud-right">
     <button id="btnLocks" type="button">자물쇠 <b id="lockCount">0/6</b></button>
@@ -314,7 +314,7 @@ button.item:hover { border-color: var(--gold); }
 <section class="screen" id="intro">
   <div class="art" role="img" aria-label="게임룸과 TIME CASINO 네온사인이 있는 카지노 테마 이미지"></div>
   <div class="copy">
-    <div class="eyebrow">BACK STAGE · 5주차 테마</div>
+    <div class="eyebrow">BACK STAGE · 6주차 테마</div>
     <h1>TIME<em>CASINO</em></h1>
     <div class="tag">쉬는 시간의 내기</div>
     <p>학교는 공부만 하던 곳이라고 기억했다. 그런데 쉬는 시간 종이 울리면 책상 위는 순식간에 판이 됐다. 별것 아닌 내기에 목숨 걸던 10분. 그 기억이 낯선 카지노가 되어 눈앞에 펼쳐졌다.</p>
@@ -377,7 +377,7 @@ const CAPTIONS = {
 
 /* Story for this theme. Each week's room gets its own THEME block (prologue + epilogue scenes), so earlier chapters can be added the same way. */
 const THEME = {
-  chapter: 'BACK STAGE · 5주차',
+  chapter: 'BACK STAGE · 6주차',
   title: 'TIME CASINO',
   prologue: [
     { scene: 'class', text: '학교는 공부만 하던 곳이라고 기억했다.' },
@@ -1206,7 +1206,7 @@ function openClue(id) {
   openModal(`<div class="head"><span class="eyebrow">방 안 단서</span><h2>${esc(c.title)}</h2><span class="meta">${esc(c.where)}</span></div>${c.html()}`);
 }
 function openPoster() {
-  openModal(`<div class="head"><span class="eyebrow">테마 포스터</span><h2>TIME CASINO</h2><span class="meta">5주차 · 쉬는 시간의 내기</span></div><img src="assets/week5-theme.webp" alt="게임룸과 TIME CASINO 네온사인이 있는 카지노 테마 이미지" style="border-radius:8px;width:100%">`);
+  openModal(`<div class="head"><span class="eyebrow">테마 포스터</span><h2>TIME CASINO</h2><span class="meta">6주차 · 쉬는 시간의 내기</span></div><img src="assets/week5-theme.webp" alt="게임룸과 TIME CASINO 네온사인이 있는 카지노 테마 이미지" style="border-radius:8px;width:100%">`);
 }
 
 /* lock UI */
