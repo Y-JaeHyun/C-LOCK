@@ -5,7 +5,7 @@ One room per week lives in `site/wN/` and is three files plus assets:
 ```
 wN/index.html   doctype, fonts, ../engine/engine.css, a <style> for this theme, three.js r149, ../engine/engine.js, theme.js
 wN/theme.js     BackStage.run({...}) with the data below and build() that makes the room
-wN/assets/      poster.webp (the theme base image), clue originals (webp), sound clues (m4a)
+wN/assets/      poster.webp (the theme base image), clue originals (webp), sound clues (AAC in .mp4 — artifacts do not serve .m4a)
 ```
 
 `w1/` (CLASSROOM) is the reference theme; `w6/` (TIME CASINO) is the older, larger one. Copy `w1/index.html` and adjust the
@@ -57,7 +57,7 @@ After the last lock the spark flies to the exit door. Door → walk out → fire
 ## Media items (clues and related clues)
 ```js
 { type: 'img', src: 'assets/x.webp', alt: '...', caption?, small? }          // click to zoom
-{ type: 'audio', src: 'assets/x.m4a', title, captions: [[t0, t1, 'text'], ...], note? }   // "소리 단서" badge, player, slow captions
+{ type: 'audio', src: 'assets/x.mp4', title, captions: [[t0, t1, 'text'], ...], note? }   // "소리 단서" badge, player, slow captions
 { type: 'youtube', id: 'VIDEO_ID', start?, title, label?, note?, cover? }    // click-to-load embed + "유튜브에서 열기 ↗"; cover:false hides the thumbnail (use for song clues)
 { type: 'link', href, label, title?, note?, fallback? }                      // new tab; fallback text in a <details>
 { type: 'text', html: '<p>...</p>' }                                          // paper box

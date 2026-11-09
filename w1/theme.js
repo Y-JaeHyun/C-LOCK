@@ -45,13 +45,13 @@ const LISTEN_CC = {
 const CLUES = {
   b_exam: { title: '생활과 윤리 시험지', where: '교실 · 앞줄 책상', media: [{ type: 'img', src: 'assets/exam.webp', alt: '사회탐구 영역 생활과 윤리 11~15번 문항. 몇몇 글자에 빨강·파랑·초록 동그라미가 쳐져 있다.', caption: '사진을 누르면 크게 볼 수 있어요.' }] },
   b_timetable: { title: '시간표', where: '교실 · 가운데 책상', media: [{ type: 'img', src: 'assets/timetable.webp', alt: '1~5학년 × 1~5교시 시간표. 국어·수학·영어·체육 칸 네 곳에 파랑·노랑·빨강·검정 표시, 아래에 색 순서와 교탁 칸.' }] },
-  b_song: { title: '노래', where: '창가 · 카세트 라디오', media: [{ type: 'audio', src: 'assets/song.m4a', title: '라디오에서 흘러나오는 노래 · 21초', captions: SONG_CC }] },
+  b_song: { title: '노래', where: '창가 · 카세트 라디오', media: [{ type: 'audio', src: 'assets/song.mp4', title: '라디오에서 흘러나오는 노래 · 21초', captions: SONG_CC }] },
   b_omr: { title: 'OMR 카드', where: '교실 · 오른쪽 책상', media: [{ type: 'img', src: 'assets/omr.webp', alt: '③교시 영어 영역 모의평가 답안지. 5번 ①③, 6번 ①, 8번 ①에 마킹. 수험번호 칸은 비어 있다.' }] },
   b_listen: { title: '영어듣기 MP3', where: '교실 · 왼쪽 책상 MP3 플레이어', media: [
-    { type: 'audio', src: 'assets/listen01.m4a', title: '트랙 1 · 1번 문항', captions: LISTEN_CC['01'] },
-    { type: 'audio', src: 'assets/listen02.m4a', title: '트랙 2 · 2번 문항', captions: LISTEN_CC['02'] },
-    { type: 'audio', src: 'assets/listen09.m4a', title: '트랙 3 · 9번 문항', captions: LISTEN_CC['09'] },
-    { type: 'audio', src: 'assets/listen15.m4a', title: '트랙 4 · 15번 문항', captions: LISTEN_CC['15'] }] },
+    { type: 'audio', src: 'assets/listen01.mp4', title: '트랙 1 · 1번 문항', captions: LISTEN_CC['01'] },
+    { type: 'audio', src: 'assets/listen02.mp4', title: '트랙 2 · 2번 문항', captions: LISTEN_CC['02'] },
+    { type: 'audio', src: 'assets/listen09.mp4', title: '트랙 3 · 9번 문항', captions: LISTEN_CC['09'] },
+    { type: 'audio', src: 'assets/listen15.mp4', title: '트랙 4 · 15번 문항', captions: LISTEN_CC['15'] }] },
   b_motto: { title: '타임고등학교 교훈', where: '칠판 왼쪽 액자', media: [{ type: 'img', src: 'assets/motto.webp', alt: '액자 속 교훈 "시키는 대로 공부하면 대학 간다". 위에 시계 모양 학교 로고.' }] },
 };
 

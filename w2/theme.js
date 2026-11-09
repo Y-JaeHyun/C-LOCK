@@ -39,7 +39,7 @@ const CLUES = {
   b_bingo: { title: '이달의 빙고 이벤트', where: '왼쪽 벽 · 이벤트 포스터', media: [{ type: 'img', src: 'assets/bingo.webp', alt: '이달의 빙고 이벤트 달력. 1일부터 31일까지 날짜 칸마다 알파벳이 하나씩 적혀 있다.' }] },
   b_shelf: { title: '진열대의 술', where: '앞쪽 벽 · 술 진열장', media: [{ type: 'img', src: 'assets/shelf.webp', alt: '두 칸짜리 나무 진열장. 윗줄과 아랫줄에 사이다·참이슬·카스·막걸리 병이 섞여 놓여 있다.' }] },
   b_darts: { title: '다트 놀이', where: '오른쪽 벽 · 다트판', media: [{ type: 'img', src: 'assets/darts.webp', alt: '나무 벽에 걸린 다트판. 검정·빨강·노랑·파랑 다트 네 개가 서로 다른 구역에 꽂혀 있다. 옆 칠판에 EVENT 501 701 801 COUNT-UP.' }] },
-  b_drunk: { title: '술취한 아조씨', where: '구석 자리 · 엎드린 단골 아저씨', media: [{ type: 'audio', src: 'assets/drunk.m4a', title: '구석 자리 아저씨의 혼잣말 · 11초', captions: DRUNK_CC }] },
+  b_drunk: { title: '술취한 아조씨', where: '구석 자리 · 엎드린 단골 아저씨', media: [{ type: 'audio', src: 'assets/drunk.mp4', title: '구석 자리 아저씨의 혼잣말 · 11초', captions: DRUNK_CC }] },
 };
 
 const RELATED = {
