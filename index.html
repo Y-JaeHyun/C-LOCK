@@ -48,9 +48,8 @@ h1 { margin: 6px 0 10px; font-family: var(--f-display); font-weight: 400; font-s
 .room { position: relative; display: flex; flex-direction: column; height: 100%; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--card); color: inherit; text-decoration: none; transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
 a.room:hover, a.room:focus-visible { transform: translateY(-3px); border-color: var(--gold); box-shadow: 0 14px 40px rgba(0,0,0,.45), 0 0 0 1px rgba(242,184,75,.25); outline: none; }
 .thumb { position: relative; aspect-ratio: 16 / 9; background: #000; }
-.thumb canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
-.room.locked .thumb canvas { filter: grayscale(.85) brightness(.45); }
-.room.locked.wip .thumb canvas { filter: grayscale(.3) brightness(.75); }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.room.locked .thumb img { filter: grayscale(.85) brightness(.45); }
 .room.locked .thumb::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(135deg, rgba(0,0,0,.25) 0 6px, transparent 6px 12px); }
 .wk { position: absolute; left: 12px; top: 12px; z-index: 1; font-family: var(--f-mono); font-size: 12px; font-weight: 600; letter-spacing: .1em; background: rgba(15,11,10,.82); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; }
 .pill { position: absolute; right: 12px; top: 12px; z-index: 1; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 10px; background: rgba(15,11,10,.82); border: 1px solid var(--line); color: var(--muted); }
@@ -60,7 +59,7 @@ a.room:hover, a.room:focus-visible { transform: translateY(-3px); border-color: 
 .body { display: flex; flex-direction: column; gap: 10px; padding: 16px 16px 18px; flex: 1; }
 .body h2 { margin: 0; font-size: 21px; line-height: 1.25; text-wrap: balance; }
 .body h2 small { display: block; margin-top: 4px; font-size: 13px; font-weight: 400; color: var(--muted); }
-.room.casino h2 { font-family: var(--f-display); font-weight: 400; letter-spacing: .02em; color: #ffe9b8; }
+.body h2.en { font-family: var(--f-display); font-weight: 400; letter-spacing: .02em; color: #ffe9b8; }
 .body p { margin: 0; font-size: 14px; color: #cdbcaa; }
 .room.locked .body p, .room.locked h2 { color: #8f8076; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: auto; padding-top: 6px; }
@@ -113,95 +112,30 @@ footer kbd { font-family: var(--f-mono); color: var(--text); border: 1px solid v
 
 /* Series order follows the renumbered source doc (1~6주차). `href` set = playable. */
 const THEMES = [
-  { wk: 1, title: '타임고등학교 3학년 4반', sub: 'CLASSROOM', status: 'wip',
+  { wk: 1, title: 'CLASSROOM', sub: '타임고등학교 3학년 4반', href: 'w1/index.html', poster: 'w1/assets/poster.webp',
     story: '졸업한 교실에 다시 왔다. 반장이자 모범생이었지만, 대학만 가면 된다며 숨 막히게 볶던 학교였다.',
-    locks: ['방향', '숫자 4 ×2', '숫자 5', '한글 4', '특수 장치'], scene: 'classroom' },
-  { wk: 2, title: 'TIME PUB', sub: '대학 시절 단골 술집', status: 'soon',
-    story: '대학 때 단골 술집. 베스트셀러 작가를 꿈꾸며 떠들던 그 시절로 돌아간다.',
-    locks: ['숫자 4 ×2', '숫자 5', '소문자 4', '대문자 5', '소문자 6'], scene: 'pub' },
-  { wk: 3, title: '게임 기획 혹평', sub: '"전개가 억지스럽다"', status: 'soon',
-    story: '시간을 소재로 한 게임 기획이 혹평을 받았다. 한 달의 노력이 날아가고 기운이 빠진다.',
-    locks: ['한글 3', '한글 4', '숫자 5', '대문자 4', '대문자 5', '대문자 7'], scene: 'gamedev' },
-  { wk: 4, title: '출간 원고의 혹평', sub: '이번에는 모니터를 끄지 않는다', status: 'soon',
-    story: '세상에 내놓은 원고가 차가운 평을 받았다. 그래도 스토리라인을 바로잡고 처음 방향으로 다시 나아간다.',
-    locks: ['방향', '숫자 3', '숫자 4', '대문자 4 ×3'], scene: 'manuscript' },
-  { wk: 5, title: '무대', sub: '나다운 길', status: 'soon',
+    locks: ['방향', '숫자 4 ×2', '숫자 5', '한글 4', '입력 2칸'] },
+  { wk: 2, title: 'PUB', sub: '대학 시절 단골 술집', href: 'w2/index.html', poster: 'w2/assets/poster.webp',
+    story: '대학 때 단골 술집. 베스트셀러 작가를 꿈꾸며 밤새 떠들던 그 시절로 돌아간다.',
+    locks: ['숫자 4 ×2', '숫자 5', '대문자 5', '소문자 6', '소문자 4'] },
+  { wk: 3, title: 'DESK', sub: '게임 기획 혹평', href: 'w3/index.html', poster: 'w3/assets/poster.webp',
+    story: '시간을 소재로 짠 게임 기획이 혹평을 받았다. 커서만 깜빡이는 책상 앞, 한 달의 노력이 날아갔다.',
+    locks: ['한글 4', '대문자 5', '한글 3', '숫자 5', '대문자 4', '대문자 7'] },
+  { wk: 4, title: 'MONITOR', sub: '출간 원고의 혹평', href: 'w4/index.html', poster: 'w4/assets/poster.jpg',
+    story: '세상에 내놓은 원고가 차가운 혹평을 받았다. 어긋난 뼈대를 바로잡고, 이번에는 모니터를 끄지 않는다.',
+    locks: ['대문자 4 ×3', '숫자 4', '숫자 3', '방향'] },
+  { wk: 5, title: 'STAGE', sub: '나다운 길', href: 'w5/index.html', poster: 'w5/assets/poster.webp',
     story: '남들이 괜찮다는 길만 따라가다 나다운 삶을 잊었다. 이번엔 내 발걸음이 향하는 방향을 따라가 본다.',
-    locks: ['숫자 5', '대문자 5 ×5'], scene: 'stage' },
-  { wk: 6, title: 'TIME CASINO', sub: '쉬는 시간의 내기', status: 'play', href: 'w6/index.html', cls: 'casino',
+    locks: ['숫자 5', '대문자 5 ×5'] },
+  { wk: 6, title: 'TIME CASINO', sub: '쉬는 시간의 내기', href: 'w6/index.html', poster: 'w6/assets/poster.webp',
     story: '공부만 하던 곳이라 기억했던 학교. 쉬는 시간마다 친구들과 걸던 사소한 내기가 카지노가 되어 펼쳐진다.',
-    locks: ['숫자 4', '대문자 8', '대문자 5', '대문자 4', '숫자 키패드', '대문자 키패드'], scene: 'casino' },
+    locks: ['숫자 4', '대문자 8', '대문자 5', '대문자 4', '숫자 키패드', '대문자 키패드'] },
 ];
 
 function record(wk) {
   try { return JSON.parse(localStorage.getItem('bs-record-w' + wk) || 'null'); } catch (e) { return null; }
 }
 const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-
-/* ---------- 128×72 pixel thumbnails, same flat dot style as the in-game prologue */
-const W = 128, H = 72;
-function scene(name, g) {
-  const r = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-  const SC = {
-    classroom() {
-      r(0, 0, W, H, '#cbb995'); r(0, 52, W, 20, '#8a5b37'); for (let x = 0; x < W; x += 8) r(x, 52, 1, 20, '#7a4e2f');
-      r(18, 10, 72, 30, '#5a3a22'); r(20, 12, 68, 26, '#2f5b45'); // chalkboard
-      r(26, 18, 22, 1, '#e8efe5'); r(26, 22, 30, 1, '#e8efe5'); r(26, 26, 16, 1, '#e8efe5'); r(60, 18, 20, 12, 'rgba(232,239,229,.15)');
-      r(20, 38, 68, 2, '#6b4529'); r(28, 37, 6, 1, '#f3f3f3');
-      r(98, 8, 22, 34, '#e9f2f7'); r(99, 9, 20, 32, '#9fd0ea'); r(108, 9, 2, 32, '#e9f2f7'); r(99, 24, 20, 2, '#e9f2f7'); // window
-      r(54, 2, 10, 10, '#f4efe2'); r(58, 4, 1, 4, '#222'); r(59, 6, 3, 1, '#222'); // clock
-      for (const [x, y] of [[10, 50], [40, 50], [70, 50], [100, 50], [22, 60], [56, 60], [90, 60]]) { r(x, y, 18, 3, '#c79a63'); r(x + 2, y + 3, 2, 6, '#5d4030'); r(x + 14, y + 3, 2, 6, '#5d4030'); }
-    },
-    pub() {
-      r(0, 0, W, H, '#2a1610'); for (let x = 0; x < W; x += 16) r(x, 0, 1, 42, '#20110c');
-      r(0, 14, W, 2, '#5a341f'); r(0, 30, W, 2, '#5a341f');
-      const bc = ['#3f8f5a', '#a8452f', '#d6a743', '#5a7fb0', '#8b3d6e'];
-      for (let i = 0; i < 18; i++) { const x = 6 + i * 7, c = bc[i % 5]; r(x, 6 + (i % 3), 4, 8 - (i % 3), c); r(x + 1, 3 + (i % 3), 2, 3, c); }
-      for (let i = 0; i < 16; i++) { const x = 8 + i * 7, c = bc[(i + 2) % 5]; r(x, 22 + (i % 2), 4, 8 - (i % 2), c); r(x + 1, 19 + (i % 2), 2, 3, c); }
-      r(0, 44, W, 6, '#7a4421'); r(0, 50, W, 22, '#4a2914'); r(0, 44, W, 1, '#b06a35');
-      for (const x of [30, 64, 98]) { r(x, 0, 1, 34, '#111'); r(x - 5, 34, 11, 4, '#e9a640'); r(x - 12, 38, 25, 6, 'rgba(255,190,90,.18)'); }
-      r(18, 39, 4, 5, '#f2d48a'); r(18, 38, 4, 1, '#fff6dd'); r(86, 39, 4, 5, '#f2d48a'); r(86, 38, 4, 1, '#fff6dd');
-      g.fillStyle = '#ff5a7a'; g.font = 'bold 9px monospace'; g.fillText('PUB', 52, 12);
-    },
-    gamedev() {
-      r(0, 0, W, H, '#1b1f2a'); r(0, 52, W, 20, '#3a3029');
-      r(22, 8, 62, 38, '#0c0e14'); r(24, 10, 58, 32, '#1d3b5c');
-      r(24, 34, 58, 8, '#3d7a3a'); r(30, 26, 6, 8, '#f2c14b'); r(54, 22, 10, 12, '#a04a3a'); r(66, 14, 6, 6, '#ffd36b');
-      r(50, 46, 6, 4, '#0c0e14'); r(40, 50, 26, 2, '#0c0e14');
-      g.save(); g.translate(64, 30); g.rotate(-.22); r(-26, -7, 52, 14, 'rgba(216,70,60,.92)'); g.fillStyle = '#fff'; g.font = 'bold 9px monospace'; g.fillText('REJECT', -18, 3); g.restore();
-      for (const [x, y, rot] of [[92, 54, .3], [100, 60, -.4], [8, 58, .2], [112, 52, .1]]) { g.save(); g.translate(x, y); g.rotate(rot); r(-6, -4, 12, 8, '#e8e2d4'); r(-4, -2, 7, 1, '#9c958a'); r(-4, 0, 5, 1, '#9c958a'); g.restore(); }
-    },
-    manuscript() {
-      r(0, 0, W, H, '#14181f'); r(0, 50, W, 22, '#43342a');
-      r(70, 6, 46, 32, '#0b0d11'); r(72, 8, 42, 28, '#cfd8e3'); for (let y = 12; y < 34; y += 3) r(76, y, 30 - (y % 7), 1, '#7b8796'); r(90, 38, 6, 6, '#0b0d11');
-      r(10, 26, 2, 24, '#2a2a2a'); r(10, 26, 16, 2, '#2a2a2a'); r(22, 26, 10, 6, '#c89b3c'); r(14, 32, 26, 18, 'rgba(255,214,120,.14)');
-      for (let i = 0; i < 6; i++) r(30 + i, 44 - i * 2, 30, 2, i % 2 ? '#f1ece0' : '#e2dccd');
-      r(34, 32, 22, 1, '#c33'); r(34, 34, 16, 1, '#c33');
-      for (const [x, y] of [[8, 60], [62, 62], [110, 58]]) { r(x, y, 7, 6, '#e8e2d4'); r(x + 1, y + 1, 3, 2, '#c8c1b2'); r(x + 4, y + 3, 2, 2, '#c8c1b2'); }
-    },
-    stage() {
-      r(0, 0, W, H, '#0b0707'); r(0, 50, W, 22, '#5a3a24'); for (let x = 0; x < W; x += 10) r(x, 50, 1, 22, '#4a2f1c');
-      for (let x = 0; x < 30; x += 5) r(x, 0, 5, 50, x % 10 ? '#8e1b1f' : '#a52328'); for (let x = 98; x < W; x += 5) r(x, 0, 5, 50, x % 10 ? '#8e1b1f' : '#a52328');
-      r(0, 0, W, 6, '#a52328'); for (let x = 0; x < W; x += 8) r(x, 6, 8, 2, x % 16 ? '#8e1b1f' : '#c0303a');
-      g.fillStyle = 'rgba(255,235,170,.16)'; g.beginPath(); g.moveTo(58, 0); g.lineTo(70, 0); g.lineTo(84, 60); g.lineTo(44, 60); g.fill();
-      g.fillStyle = 'rgba(255,235,170,.22)'; g.beginPath(); g.ellipse(64, 60, 21, 5, 0, 0, Math.PI * 2); g.fill();
-      for (const [x, y] of [[40, 66], [48, 62], [56, 66], [62, 61]]) { r(x, y, 3, 2, '#e8d3a0'); r(x + 1, y - 1, 1, 1, '#e8d3a0'); }
-      r(62, 46, 4, 10, '#20141a'); r(62, 42, 4, 4, '#e6b98e');
-    },
-    casino() {
-      r(0, 0, W, H, '#140a0d'); r(0, 50, W, 22, '#5a1218'); for (let y = 52; y < H; y += 4) for (let x = (y % 8) ? 0 : 4; x < W; x += 8) r(x, y, 2, 2, '#4a0f14');
-      r(0, 48, W, 2, '#c99a3c');
-      g.fillStyle = '#ff4fa3'; g.font = 'bold 10px monospace'; g.fillText('TIME CASINO', 32, 14); r(30, 16, 68, 1, '#ff4fa3');
-      r(10, 22, 18, 26, '#7a1d22'); r(12, 24, 14, 8, '#0d0606'); r(13, 26, 3, 4, '#ffd36b'); r(17, 26, 3, 4, '#ffd36b'); r(21, 26, 3, 4, '#ffd36b'); r(28, 26, 2, 10, '#c99a3c');
-      r(42, 34, 44, 14, '#1f5a35'); r(40, 32, 48, 2, '#6b3a1a'); r(40, 46, 48, 2, '#6b3a1a');
-      for (const [x, c] of [[48, '#f3ecdc'], [56, '#f3ecdc'], [70, '#f3ecdc']]) { r(x, 37, 6, 8, c); r(x + 1, 38, 2, 2, x === 56 ? '#c33' : '#222'); }
-      for (let i = 0; i < 4; i++) r(80, 41 - i * 2, 4, 2, i % 2 ? '#d8463c' : '#f2f2f2');
-      r(100, 20, 18, 28, '#2a1a10'); r(102, 22, 14, 14, '#3b1c1c'); r(107, 26, 5, 5, '#e0335a'); r(108, 27, 2, 2, '#ff9bb5');
-      for (const [x, y] of [[36, 22], [92, 24], [60, 26]]) r(x, y, 1, 1, '#ffd36b');
-    },
-  };
-  SC[name]();
-}
 
 /* ---------- render cards */
 const grid = document.getElementById('grid');
@@ -211,15 +145,15 @@ for (const t of THEMES) {
   if (rec) cleared++;
   const li = document.createElement('li');
   const el = document.createElement(playable ? 'a' : 'article');
-  el.className = `room ${playable ? '' : 'locked'} ${t.status} ${t.cls || ''}`;
+  el.className = `room ${playable ? '' : 'locked'}`;
   if (playable) { el.href = t.href; el.setAttribute('aria-label', `${t.wk}주차 ${t.title} 플레이`); }
   else el.setAttribute('aria-disabled', 'true');
-  const pill = rec ? ['clear', '탈출 성공'] : t.status === 'play' ? ['play', '플레이'] : t.status === 'wip' ? ['wip', '제작 중'] : ['', '준비 중'];
+  const pill = rec ? ['clear', '탈출 성공'] : playable ? ['play', '플레이'] : ['', '준비 중'];
   el.innerHTML = `
     <div class="thumb"><span class="wk">${t.wk}주차</span><span class="pill ${pill[0]}">${pill[1]}</span>
-      <canvas width="${W}" height="${H}" role="img" aria-label="${t.title} 장면을 도트로 그린 그림"></canvas></div>
+      <img src="${t.poster}" alt="${t.title} 테마 이미지" loading="lazy"></div>
     <div class="body">
-      <h2>${t.title}<small>${t.sub}</small></h2>
+      <h2 class="en">${t.title}<small>${t.sub}</small></h2>
       <p>${t.story}</p>
       <div class="chips" aria-label="자물쇠 구성">${t.locks.map(l => `<span>${l}</span>`).join('')}</div>
       <div class="foot">
@@ -227,7 +161,6 @@ for (const t of THEMES) {
         <span class="go">${playable ? (rec ? '다시 도전 →' : '입장 →') : '잠김'}</span>
       </div>
     </div>`;
-  scene(t.scene, el.querySelector('canvas').getContext('2d'));
   li.appendChild(el); grid.appendChild(li);
 }
 document.getElementById('clearN').textContent = `${cleared} / ${THEMES.length}`;

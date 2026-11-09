@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=VT323&family=Gaegu:wght@400;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="../engine/engine.css">
+<style>
+/* MONITOR: 2 AM screen glow (cold blue) and sticky-note yellow over the shared engine */
+:root { --ink: #06080c; --panel: #0e131a; --panel-2: #151d27; --line: #2a394a; --gold: #f3d65a; --neon: #7fb2ff; --muted: #8e9cad; --cream: #e8eef6; }
+.screen h1 { font-family: 'VT323', 'IBM Plex Mono', monospace; font-weight: 400; font-size: clamp(64px, 9vw, 112px); letter-spacing: .06em; line-height: .9; color: #eaf2ff; text-shadow: 0 0 18px rgba(127,178,255,.55), 0 0 2px rgba(255,255,255,.6); }
+.screen h1 em { font-style: normal; color: #f3d65a; text-shadow: 0 0 18px rgba(243,214,90,.45); }
+.brand { font-family: 'VT323', monospace; font-size: 24px; letter-spacing: .08em; color: #eaf2ff; }
+#sStats .grade { font-family: 'VT323', monospace; }
+</style>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="../engine/engine.js"></script>
+<script src="theme.js"></script>
+</body>
+</html>

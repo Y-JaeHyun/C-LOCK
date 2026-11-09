@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Special+Elite&family=Nanum+Pen+Script&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;600&display=swap">
+<link rel="stylesheet" href="../engine/engine.css">
+<style>
+/* DESK: lamp-lit night desk palette (deep navy, sepia paper, lamp yellow) over the shared engine */
+:root { --ink: #0a0c13; --panel: #131620; --panel-2: #1b1f2c; --line: #363b4c; --gold: #f2c46b; --neon: #ffcf7a; --muted: #a9a496; --cream: #f3ead8; --paper: #efe6d2; --paper-ink: #2a2016; --sky: #8fb4e8; }
+.screen h1 { font-family: 'Special Elite', 'Courier New', monospace; color: #f3ead8; letter-spacing: .04em; text-shadow: 0 0 26px rgba(255,207,122,.35); }
+.screen h1 em { font-style: normal; color: #ffcf7a; animation: deskCursor 1.05s steps(1) infinite; }
+@keyframes deskCursor { 50% { opacity: 0; } }
+.brand { font-family: 'Special Elite', 'Courier New', monospace; font-size: 20px; letter-spacing: .06em; }
+#sStats .grade { font-family: 'Special Elite', 'Courier New', monospace; }
+</style>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="../engine/engine.js"></script>
+<script src="theme.js"></script>
+</body>
+</html>

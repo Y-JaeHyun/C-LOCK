@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;600&family=Stardos+Stencil:wght@400;700&display=swap">
+<link rel="stylesheet" href="../engine/engine.css">
+<style>
+/* STAGE: an empty theatre at sunset. Deep black, sunset amber, spotlight white. */
+:root { --ink: #0a0807; --panel: #161110; --panel-2: #211813; --line: #4c3828; --gold: #f2a650; --neon: #ffcf8a; --muted: #b29e89; --cream: #f8f0e4;
+  --f-display: 'Stardos Stencil', Georgia, serif; }
+.screen h1 { font-family: 'Stardos Stencil', Georgia, serif; font-weight: 700; letter-spacing: .04em; color: #fbf3e4; text-shadow: 0 0 26px rgba(255,150,70,.5); }
+.screen h1 em { color: #ffa552; }
+.brand { font-family: 'Stardos Stencil', Georgia, serif; font-weight: 700; font-size: 20px; letter-spacing: .06em; }
+/* the ?? clue is a 155×785 stretched word: show it unscaled-in-shape (whole strip visible), never widened to the modal */
+.cimg img[src$="banner.webp"] { width: auto; max-width: 100%; height: auto; max-height: min(785px, 74vh); margin: 0 auto; background: #fff; }
+#sStats .grade { font-family: 'Stardos Stencil', Georgia, serif; font-weight: 700; }
+</style>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js"></script>
+<script src="../engine/engine.js"></script>
+<script src="theme.js"></script>
+</body>
+</html>
