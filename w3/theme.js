@@ -30,7 +30,7 @@ const LOCKS = [
       '규약에서 \'포기\'라는 말이 나오는 조항 네 곳을 찾으세요. 그 문장 안, 괄호 속에 숨은 영문자를 조항 순서대로 읽습니다.'] },
   { id: 'L6', no: 6, name: '시제품 상자', type: '대문자 7자리', mech: 'dial', set: AZ, len: 7, hash: '1a4tlbk', related: 'erased',
     hints: ['연관 단서 「일부가 지워진 무언가」는 책장 라디오의 「노래」와 짝입니다.',
-      '빨간 글자는 왼쪽은 위 절반, 오른쪽은 좌우가 뒤집힌 아래 절반만 남아 있습니다. 두 반쪽을 맞춰 글자를 복원하거나, 노래 제목을 알아내 7글자로 입력하세요.'] },
+      '노래 제목이 그림을 읽는 방법입니다. 물감을 찍어 접은 것처럼, 좌우가 뒤집힌 오른쪽 반쪽을 다시 뒤집어 왼쪽 위 절반에 맞대면 7글자 영어가 됩니다.'] },
 ];
 
 const CAPTIONS = {
@@ -53,8 +53,8 @@ const CLUES = {
     { type: 'img', src: 'assets/map_time.webp', alt: '지도 앱의 가게 화면 \'시간\'. 서울 강남구 테헤란로55길 35 1호, 지번 역삼동 695-13, 우편번호 06149.', small: true }] },
   b_terms: { title: '계약서에 포함된 규약', where: '안락의자 옆 탁자 · 출판 계약서', media: [
     { type: 'link', href: 'https://rentry.co/zs5syg3a', label: '원고 보관 및 출판 이용 규약 열기', title: '출판 계약서에 첨부된 규약 (제1조~제50조)', note: '계약서 뒤에 묶인 규약 전문입니다. 새 탭에서 열립니다.', fallback: RENTRY }] },
-  /* song id presumed from the clip; confirm with the user */
-  b_song: { title: '노래', where: '책장 · 라디오', media: [{ type: 'youtube', id: 'dfnCAmr569k', cover: false, label: '노래 단서', title: '라디오에서 흘러나오는 노래', note: '소리를 들을 수 없다면: 이 노래의 제목을 알아내는 것이 단서입니다.' }] },
+  /* MAMAMOO 「데칼코마니」 official MV (confirmed by the user); the original clip is not hosted */
+  b_song: { title: '노래', where: '책장 · 라디오', media: [{ type: 'youtube', id: 'u8ukVmSf2ik', cover: false, label: '노래 단서', title: '라디오에서 흘러나오는 노래', note: '소리를 들을 수 없다면: 이 노래의 제목을 알아내는 것이 단서입니다.' }] },
 };
 
 const RELATED = {

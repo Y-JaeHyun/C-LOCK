@@ -17,7 +17,7 @@ const LOCKS = [
   { id: 'L4', no: 4, name: '방송 앰프', type: '한글 4글자', mech: 'text', len: 4, label: '한글 4글자', hash: '1m7lelp', related: 'questions',
     hints: ['연관 단서 「영어 듣기 문제지」는 책상 위 「영어듣기 MP3」와 짝입니다.', '음성 속 실제 문제 문구와 문제지를 비교해 바뀐 글자를 찾고, 바뀌기 전의 원래 글자를 문제 번호 순서대로 이으세요.'] },
   { id: 'L5', no: 5, name: '시계 아래 금고', type: '숫자 4자리', mech: 'dial', set: DIGITS, len: 4, hash: 'bzajx2', related: 'letter',
-    hints: ['연관 단서 「가정통신문」을 자세히 보세요. 맨 위 학교 로고에 시계가 있습니다.', '통신문 로고 시계의 바늘이 가리키는 곳을 읽으세요. 시침은 XI, 분침은 V. 그 시각을 숫자 4자리로 적습니다.'] },
+    hints: ['연관 단서 「가정통신문」은 오른쪽 책상 위 「OMR 카드」와 짝입니다.', 'OMR의 문항 번호는 통신문 본문의 줄 번호, 마킹한 답 번호는 그 줄의 몇 번째 글자(띄어쓰기 제외)입니다. 문항 순서대로 글자를 모아 읽고 숫자로 바꾸세요.'] },
   { id: 'L6', no: 6, name: '교내 인터폰', type: '기타 장치 · 입력 2칸', mech: 'form', related: 'intercom',
     fields: [{ label: '내가 몇 학년 몇 반이었더라?' }, { label: '우리 학교 교훈은 무엇이었지?', long: true }],
     hash: ['15vf2gh', '1gzsqn5', '1k6er64'],
