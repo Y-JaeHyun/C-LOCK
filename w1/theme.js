@@ -318,7 +318,7 @@ function buildBack() {
 
 function buildDesks() {
   const top = M(0x9a7550, { roughness: 0.6 }), leg = M(0x5a5a5e, { metalness: 0.5, roughness: 0.45 }), seat = M(0x8a6848, { roughness: 0.65 });
-  const xs = [-3.2, -1.6, 0, 1.6, 3.2], zs = [-1.8, -0.2, 1.4, 3.0];
+  const xs = [-3.6, -1.8, 0, 1.8, 3.6], zs = [-2.05, -0.3, 1.45, 3.2];
   const r = rng(21);
   const clueAt = { '1,0': 'b_exam', '3,1': 'b_timetable', '4,2': 'b_omr', '0,2': 'b_listen' };
   zs.forEach((z, j) => xs.forEach((x, i) => {
@@ -326,10 +326,10 @@ function buildDesks() {
     mesh(bx(0.66, 0.035, 0.46), top, 0, 0.72, 0, g);
     mesh(bx(0.6, 0.12, 0.4), M(0x7a7a7e, { metalness: 0.4, roughness: 0.5 }), 0, 0.63, -0.01, g);
     [[-0.3, -0.2], [0.3, -0.2], [-0.3, 0.2], [0.3, 0.2]].forEach(([lx, lz]) => mesh(bx(0.03, 0.7, 0.03), leg, lx, 0.35, lz, g));
-    const c = grp(0, 0, 0.48 + (r() - 0.5) * 0.1, (r() - 0.5) * 0.3, g);
+    const c = grp(0, 0, 0.36 + (r() - 0.5) * 0.06, (r() - 0.5) * 0.25, g);   /* chairs tucked in so the rows stay walkable */
     mesh(bx(0.4, 0.03, 0.38), seat, 0, 0.44, 0, c); mesh(bx(0.4, 0.32, 0.03), seat, 0, 0.66, 0.18, c);
     [[-0.17, -0.16], [0.17, -0.16], [-0.17, 0.16], [0.17, 0.16]].forEach(([lx, lz]) => mesh(bx(0.025, 0.44, 0.025), leg, lx, 0.22, lz, c));
-    collide(x, z + 0.2, 0.72, 0.95);
+    collide(x, z + 0.05, 0.7, 0.6);   /* desk only; aisles of ~1.1 m between columns and rows */
     const key = `${i},${j}`, cid = clueAt[key];
     if (cid === 'b_exam' || cid === 'b_timetable' || cid === 'b_omr') {
       const src = { b_exam: ['assets/exam.webp', 0.34, 0.42], b_timetable: ['assets/timetable.webp', 0.5, 0.2], b_omr: ['assets/omr.webp', 0.48, 0.37] }[cid];
@@ -352,7 +352,7 @@ function buildDesks() {
     }
   }));
   /* the open book "서시" from the base image, on the front row */
-  { const g = grp(0, 0, -1.8, 0.08);
+  { const g = grp(0, 0, -2.05, 0.08);
     const bt = tex(512, 340, (c, w, h) => { c.fillStyle = '#efe7d2'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(0,0,0,.18)'; c.fillRect(w / 2 - 3, 0, 6, h); c.fillStyle = '#2a2018'; c.font = '700 26px "IBM Plex Sans KR", sans-serif'; c.textAlign = 'center'; c.fillText('서시', w * 0.75, 50); c.font = '400 15px "IBM Plex Sans KR", sans-serif'; ['죽는 날까지 하늘을 우러러', '한 점 부끄럼이 없기를,', '잎새에 이는 바람에도', '나는 괴로워했다.'].forEach((s, i) => c.fillText(s, w * 0.75, 110 + i * 34)); c.fillStyle = 'rgba(40,30,20,.5)'; for (let i = 0; i < 9; i++) c.fillRect(30, 40 + i * 30, 180, 3); });
     const p = plane(bt, 0.5, 0.33, true); p.rotation.x = -Math.PI / 2; p.position.set(0, 0.745, 0); g.add(p); }
 }

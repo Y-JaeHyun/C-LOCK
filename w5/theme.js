@@ -467,6 +467,8 @@ function buildRight() {
     sheet.position.set(0, 0.01, 0.01); sheet.visible = false; desk.add(sheet);
     props.L4 = { kind: 'fade', m: sheet, drop: 0.25 };
     collide(5.45, 2.3, 0.4, 0.4); }
+  /* close the nook between the stand, the follow spot and the bag so nobody gets wedged against the wall */
+  collide(5.75, 2.3, 0.9, 0.4); collide(5.7, 3.6, 0.9, 1.4);
 
   /* sneakers and a bag on the floor */
   { const g = grp(5.35, 0, 5.15, 0.4);

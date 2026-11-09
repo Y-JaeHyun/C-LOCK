@@ -534,7 +534,7 @@ function buildBack() {
       mesh(bx(1.24, 0.03, 0.38), wood, 0, 0.05 + s * 0.52, 0, g);
       let x = -0.58; while (x < 0.5) { const w = 0.04 + r() * 0.05, h = 0.28 + r() * 0.16; if (r() < 0.12) { x += 0.08; continue; } mesh(bx(w, h, 0.28), M([0x3a4a6a, 0x6a3a2a, 0x2a5a4a, 0x7a6a3a, 0x4a3a5a, 0xd8d0c0][(r() * 6) | 0], { roughness: 0.75 }), x + w / 2, 0.065 + s * 0.52 + h / 2, 0.02, g); x += w + 0.008; }
     }
-    collide(4.35, 4.78, 1.35, 0.5); }
+    collide(4.35, 4.78, 1.35, 0.5); collide(5.35, 4.6, 0.6, 0.6); /* fills the slot between it and the wall */ }
 }
 
 function drawClock(min, colon) {

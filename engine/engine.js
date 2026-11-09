@@ -95,7 +95,8 @@ scene.fog = new THREE.Fog(0x0d0705, 12, 34);
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.05, 80);
 camera.rotation.order = 'YXZ';
 camera.layers.enable(1);
-const player = { x: 0, z: 0, yaw: 0, pitch: -0.06, eye: 1.65, r: 0.33 };
+/* r is the body radius used against colliders; kept slim so aisles between furniture stay walkable */
+const player = { x: 0, z: 0, yaw: 0, pitch: -0.06, eye: 1.65, r: 0.24 };
 let bounds = [-11.65, 11.65, -8.65, 8.6];
 
 const colliders = [];
@@ -1229,7 +1230,7 @@ function run(theme) {
   { const r = loadRecord(), el = $('#bestRec'); if (r && el) { el.hidden = false; el.textContent = `내 최고 기록 ${fmt(r.time)} · 등급 ${r.grade}`; } }
   updateHUD();
 
-  if (location.hash === '#debug') window.__bs = { state, api, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, ZONES, aimPick, revealProp, startCut: id => startCut(LOCK_BY_ID[id]), skipCut, runStory, showEnding,
+  if (location.hash === '#debug') window.__bs = { state, api, colliders, blocked, get bounds() { return bounds; }, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, ZONES, aimPick, revealProp, startCut: id => startCut(LOCK_BY_ID[id]), skipCut, runStory, showEnding,
     /* advance the simulation by hand (tests in a hidden tab, where requestAnimationFrame is paused) */
     tick: (sec = 1) => { for (let k = 0; k < sec * 30; k++) { const dt = 1 / 30; last += dt * 1000; if (state.started && !state.modal && !cut && !exitWalk) move(dt); animate(last / 1000, dt); if (cut) updateCut(dt); if (story) story.update(dt); fwUpdate(dt); if (exitWalk) updateExitWalk(dt); } },
     teleport:(x, z, yaw = 0, pitch) => { player.x = x; player.z = z; player.yaw = yaw; if (pitch !== undefined) player.pitch = pitch; } };
