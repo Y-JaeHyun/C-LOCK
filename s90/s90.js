@@ -94,6 +94,7 @@ function rulesHTML() {
     <li><b>Boss Stage</b>는 마지막에 고정. 패스·아이템 사용 불가. 성공 +1 Level·+1 HP와 스톤 획득, 실패 −1 Level·−1 HP.</li>
     <li><b>HP</b>는 3에서 시작(최대 5). 단계가 끝났을 때 그 단계 Level 합이 음수면 −1. HP 0이면 퇴장.</li>
     <li><b>아이템</b>: 🛡️ 방패 3회(실패해도 패스 처리), 🧪 HP 물약 1회(HP 0일 때 자동 사용), 🔴 리얼리티 스톤 1회(문제를 미리 보고 30초 안에 결정).</li>
+    <li><b>단어 문제</b>(반응 초성게임, 단어 만들기 보스)는 <b>뉴에이스 국어사전</b>(macOS 내장 국어사전) 표제어 기준으로 채점합니다.</li>
     <li>9단계 × 10스테이지 = 90 Stage. 최종 Level이 가장 높은 배역이 최종장에 진출합니다.</li>
   </ul>`;
 }
@@ -279,12 +280,12 @@ SCREENS.play = t => {
     case 'roulette': return `${head}<div class="card qcard">${tag}<p class="q big">룰렛을 돌리세요</p>${wheelSVG(m)}<div class="btns" style="justify-content:center"><button class="btn go big" type="button" id="spin">돌리기</button></div></div>`;
     case 'typing': return `${head}<div class="card qcard typing">${tag}<p class="q">아래 문장을 그대로 입력하세요</p><div class="target" id="tgt">${esc(m.text)}</div>
       <textarea id="ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="입력"></textarea><p class="hint">붙여넣기는 막혀 있습니다. 똑같이 치면 바로 성공합니다.</p></div>`;
-    case 'chosung': return `${head}<div class="card qcard">${tag}<p class="q">초성을 보고 단어를 만드세요</p><div class="cho">${esc(m.chosung)}</div>${answerBox('단어', '제출')}<p class="hint">한 번만 제출할 수 있습니다.</p></div>`;
+    case 'chosung': return `${head}<div class="card qcard">${tag}<p class="q">초성을 보고 단어를 만드세요</p><div class="cho">${esc(m.chosung)}</div>${answerBox('단어', '제출')}<p class="hint">한 번만 제출할 수 있습니다. ${esc(m.dict || '국어사전')}에 있는 단어만 정답입니다.</p></div>`;
     case 'order': return `${head}<div class="card qcard">${tag}${m.html}<div class="pick" id="pick">${m.items.map((x, i) => `<button type="button" data-i="${i}">${esc(x)}</button>`).join('')}</div>
       <div class="picked" id="picked"><span class="ph">순서대로 누르세요</span></div><div class="btns" style="justify-content:center"><button class="btn" type="button" id="oclr">다시 고르기</button><button class="btn go" type="button" id="osub" disabled>제출</button></div><p class="hint">한 번만 제출할 수 있습니다. 검색해도 됩니다.</p></div>`;
     case 'board': return `${head}<div class="card qcard">${tag}<p class="q">글자판의 글자로 <b>세 글자 단어 ${m.need}개</b>를 만드세요</p>${boardHTML(m, false)}
       ${answerBox('세 글자 단어', '내기')}<div class="btns" style="justify-content:center;margin-top:10px"><button class="btn ghost" type="button" id="bclr">지우기</button></div>
-      <div class="found" id="found"></div><p class="hint">글자를 눌러 고르거나 직접 입력하세요. 사전에 있는 단어만 인정됩니다.</p></div>`;
+      <div class="found" id="found"></div><p class="hint">글자를 눌러 고르거나 직접 입력하세요. ${esc(m.dict || '국어사전')}에 있는 단어만 인정됩니다.</p></div>`;
     default: return `${head}<div class="card qcard">${tag}${m.html}${answerBox(m.placeholder || '정답', '제출')}${m.once ? '<p class="hint">한 번 틀리면 실패입니다.</p>' : ''}</div>`;
   }
 };
