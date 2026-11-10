@@ -55,7 +55,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <section class="screen" id="intro">
   <div class="art" role="img" id="introArt"></div>
   <div class="copy">
-    <a class="back" href="../index.html">← 테마 선택</a>
+    <a class="back" href="../backstage.html">← 테마 선택</a>
     <div class="eyebrow" id="introEyebrow"></div>
     <h1 id="introTitle"></h1>
     <div class="tag" id="introTag"></div>
@@ -688,7 +688,7 @@ function updateTimer() {
 }
 function showTimeUp() {
   openModal(`<div class="head"><span class="eyebrow">TIME OVER</span><h2>60분이 지났습니다</h2><span class="meta">자물쇠 ${Object.keys(state.solved).length}/${NL} 해제. 실제 방탈출이라면 여기서 종료지만, 계속 풀어 볼 수 있습니다. 타이머는 초과 시간을 셉니다.</span></div>
-    <div class="actions"><button class="btn primary" type="button" id="goOn">계속 풀기</button><button class="btn" type="button" id="restart1">처음부터 다시</button><a class="btn" href="../index.html">테마 선택</a></div>`);
+    <div class="actions"><button class="btn primary" type="button" id="goOn">계속 풀기</button><button class="btn" type="button" id="restart1">처음부터 다시</button><a class="btn" href="../backstage.html">테마 선택</a></div>`);
   $('#goOn').addEventListener('click', closeModal);
   $('#restart1').addEventListener('click', () => location.reload());
 }
@@ -936,7 +936,7 @@ function showStats() {
   const st = $('#sStats'); st.hidden = false;
   st.innerHTML = `<span class="lbl">${inTime ? '탈출까지 걸린 시간' : '걸린 시간 (제한 시간 초과)'}</span><span class="big">${fmt(t)}</span>
     <div class="facts"><div><b>${state.hintsUsed}</b><span>사용한 힌트</span></div><div><b>${state.wrong}</b><span>오답</span></div><div><b class="grade">${inTime ? grade(t) : '—'}</b><span>등급</span></div></div>
-    <div class="actions"><button class="btn" type="button" id="stay">방 둘러보기</button><button class="btn" type="button" id="restart2">처음부터 다시</button><a class="btn primary" href="../index.html">다른 테마 고르기</a></div>`;
+    <div class="actions"><button class="btn" type="button" id="stay">방 둘러보기</button><button class="btn" type="button" id="restart2">처음부터 다시</button><a class="btn primary" href="../backstage.html">다른 테마 고르기</a></div>`;
   $('#stay').addEventListener('click', () => { fw.on = false; $('#story').hidden = true; $('#hud').hidden = false; $('#crosshair').hidden = false; $('#help').hidden = isTouch; if (isTouch) { $('#joy').hidden = false; $('#useBtn').hidden = false; } player.x = door.inside.x; player.z = door.inside.z; const d = door.look.clone().sub(door.inside); player.yaw = Math.atan2(d.x, d.z); updateLockHint(); });
   $('#restart2').addEventListener('click', () => location.reload());
 }
