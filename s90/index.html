@@ -240,11 +240,34 @@ h1, h2, h3 { margin: 0; }
 .peg:hover { border-color: var(--line-2); }
 .peg.sel { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold) inset; }
 .peg .rod { position: absolute; left: 50%; bottom: 30px; top: 18px; width: 8px; margin-left: -4px; border-radius: 4px; background: #8c93b8; }
-.peg em { position: absolute; left: 0; right: 0; bottom: 6px; font-style: normal; font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
+.peg em { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; font-style: normal; font-family: var(--f-mono); font-size: 13px; color: var(--muted); }
 .disk { position: relative; z-index: 1; width: var(--w); min-width: 64px; height: 34px; border-radius: 8px; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #10142a; white-space: nowrap; border: 1px solid rgba(0,0,0,.3); transition: transform .15s; }
 .disk.d1 { background: #ff5a52; } .disk.d2 { background: #ff9c3d; } .disk.d3 { background: #ffd84a; } .disk.d4 { background: #7ee07a; }
 .disk.up { transform: translateY(-10px); box-shadow: 0 6px 14px rgba(0,0,0,.4); }
 #af[hidden] { display: none !important; }
+/* hanoi rule example on the brief */
+.ex { margin: 20px auto 6px; max-width: 560px; text-align: left; border: 1px solid var(--line-2); border-radius: 14px; padding: 16px; background: var(--bg-2); }
+.ex-h { font-weight: 700; font-size: 16px; text-align: center; }
+.ex-h b { color: var(--gold); }
+.pegs.mini { margin-top: 10px; }
+.pegs.mini .peg { height: 150px; cursor: default; padding-bottom: 26px; }
+.pegs.mini .peg:hover { border-color: var(--line); }
+.pegs.mini .disk { height: 28px; font-size: 11px; }
+.ex-cap { text-align: center; margin: 12px 0 0; min-height: 3.2em; font-size: 15px; }
+.ex-cap b { color: var(--cyan); } .ex-cap .ok { color: var(--ok); }
+#hexUsed { min-height: 0; margin-top: 8px; gap: 6px; align-items: center; }
+#hexUsed small { color: var(--muted); font-size: 12px; margin-right: 2px; }
+#hexUsed span { padding: 3px 10px; font-size: 13px; }
+.ex-nav { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px; }
+.ex-nav .btn { min-height: 40px; padding: 0 16px; }
+.ex-nav span { font-family: var(--f-mono); color: var(--muted); min-width: 4ch; text-align: center; }
+.ex-how { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line-2); font-size: 14px; }
+.ex-how b, .ex-no > b { color: var(--gold); margin-right: 6px; }
+.ex-no { margin-top: 10px; font-size: 14px; }
+.ex-no ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.ex-no li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 10px; padding: 6px 10px; border-radius: 8px; background: rgba(255,90,82,.08); border: 1px solid rgba(255,90,82,.3); }
+.ex-no li span { color: var(--bad); font-weight: 700; }
+.ex-no li small { color: var(--muted); font-size: 13px; }
 #used span { background: rgba(61,224,255,.12); border-color: var(--cyan); color: var(--cyan); }
 @media (max-width: 640px) {
   .hud-in { gap: 8px 14px; padding: 8px 12px; }
@@ -264,6 +287,10 @@ h1, h2, h3 { margin: 0; }
   .orow .t small { display: none; }
   .peg { height: 190px; }
   .disk { font-size: 11px; min-width: 0; width: calc(var(--w) + 14%); }
+  .ex { padding: 14px 10px; }
+  .pegs.mini { gap: 6px; }
+  .pegs.mini .peg { padding: 0 3px 26px; }
+  .pegs.mini .disk { min-width: 60px; font-size: 10.5px; letter-spacing: -.02em; }
 }
 @media (prefers-reduced-motion: reduce) { .screen, .count b { animation: none; } .wheel-wrap svg { transition-duration: .6s; } }
 </style>

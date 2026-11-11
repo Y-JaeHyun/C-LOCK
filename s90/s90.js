@@ -198,6 +198,7 @@ SCREENS.brief = () => {
     <div class="lv">Lv.${m.lv}${m.name ? ' · ' + esc(m.name) : ''}</div>
     <p class="desc">${esc(m.brief)}</p>
     <div class="chips">${m.rules.map(r => `<span>${esc(r)}</span>`).join('')}</div>
+    ${m.kind === 'hanoi' && m.example ? hanoiExampleHTML(m) : ''}
     ${boss ? `<p class="hint">성공하면 +1 Level · +1 HP · ${ITEMS[STAGES[S.stage].bossReward].icon} ${ITEMS[STAGES[S.stage].bossReward].name} 획득, 실패하면 −1 Level · −1 HP</p>` : `
     <div class="toggles">
       <button class="toggle" type="button" id="tShield" aria-pressed="${declare.shield}" ${S.items.shield ? '' : 'disabled'}>🛡️ 방패 사용 선언 <small>(${S.items.shield})</small></button>
@@ -209,8 +210,9 @@ SCREENS.brief = () => {
     ${boss ? '' : '<button class="link" type="button" id="reorder">남은 순서 바꾸기</button>'}</div>`;
 };
 BIND.brief = () => {
-  const t = curType(), boss = t === BOSS;
+  const t = curType(), boss = t === BOSS, m = mission(t);
   $('#bgo').onclick = () => challenge(t);
+  if (m.kind === 'hanoi' && m.example) bindHanoiExample(m);
   if (boss) return;
   $('#bpass').onclick = () => doPass(t);
   $('#reorder').onclick = () => go('order');
@@ -337,8 +339,39 @@ const dieFace = n => {
   const P = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }[n] || [];
   return `<div class="pips ${n ? '' : 'blank'}">${Array.from({ length: 9 }, (_, i) => `<i class="${P.includes(i) ? 'on' : ''}"></i>`).join('')}</div>${n ? '' : '<span>?</span>'}`;
 };
-const hanoiHTML = (m, pegs, sel) => `<div class="pegs">${pegs.map((pg, i) => `<button type="button" class="peg ${sel === i ? 'sel' : ''}" data-p="${i}" aria-label="${i + 1}번째 봉${pg.length ? ', 맨 위 ' + pg[pg.length - 1] + '번' : ', 비어 있음'}">
-  <span class="rod"></span>${pg.map((d, k) => `<span class="disk d${d} ${sel === i && k === pg.length - 1 ? 'up' : ''}" style="--w:${30 + d * 22}%">${d}번 · ${m.lens[d - 1]}글자</span>`).join('')}<em>${i + 1}${i === m.goal ? ' 🎯' : ''}</em></button>`).join('')}</div>`;
+/* still = a picture only (the rule example): plain divs, no tap targets */
+const hanoiHTML = (m, pegs, sel, still) => `<div class="pegs ${still ? 'mini' : ''}">${pegs.map((pg, i) => `<${still ? 'div' : 'button type="button"'} class="peg ${sel === i ? 'sel' : ''}" ${still ? '' : `data-p="${i}"`} aria-label="${i + 1}번째 봉${pg.length ? ', 맨 위 ' + pg[pg.length - 1] + '번' : ', 비어 있음'}">
+  <span class="rod"></span>${pg.map((d, k) => `<span class="disk d${d} ${sel === i && k === pg.length - 1 ? 'up' : ''}" style="--w:${30 + d * 22}%">${d}번 · ${m.lens[d - 1]}글자</span>`).join('')}<em>${i + 1}${i === m.goal ? ' 🎯' : ''}</em></${still ? 'div' : 'button'}>`).join('')}</div>`;
+/* Hanoi rule example: a worked solve on a different theme, stepped with ◀ ▶ */
+function hanoiExampleHTML(m) {
+  const ex = m.example;
+  return `<div class="ex" id="hex"><div class="ex-h">예시 · 주제가 <b>‘${esc(ex.theme)}’</b>라면</div>
+    <div id="hexPic"></div><p class="ex-cap" id="hexCap"></p><div class="found" id="hexUsed"></div>
+    <div class="ex-nav"><button class="btn ghost" type="button" id="hexPrev">◀ 이전</button><span id="hexNo"></span><button class="btn" type="button" id="hexNext">다음 ▶</button></div>
+    <div class="ex-how"><b>조작</b> 옮길 블럭이 있는 봉 누르기 → 놓을 봉 누르기 → 단어 입력 후 ‘옮기기’</div>
+    <div class="ex-no"><b>이러면 안 옮겨져요</b> (실패는 아니고, 시간 안에 다시 하면 됩니다)<ul>${ex.wrong.map(([a, b]) => `<li><span>✕ ${esc(a)}</span><small>${esc(b)}</small></li>`).join('')}</ul></div></div>`;
+}
+function bindHanoiExample(m) {
+  const ex = m.example, n = ex.moves.length; let k = 0;
+  const draw = () => {
+    const pegs = [[], [], []]; pegs[m.start] = m.lens.map((_, i) => m.lens.length - i);
+    ex.moves.slice(0, k).forEach(([a, b]) => pegs[b].push(pegs[a].pop()));
+    $('#hexPic').innerHTML = hanoiHTML(m, pegs, -1, true);
+    let cap;
+    if (k === 0) cap = `시작: 블럭 ${m.lens.length}개가 <b>${m.start + 1}번째 봉</b>에 있어요. 모두 <b>🎯 ${m.goal + 1}번째 봉</b>으로 옮기면 성공.`;
+    else {
+      const [a, b, w] = ex.moves[k - 1], d = pegs[b][pegs[b].length - 1];
+      cap = `${a + 1}번 봉 → ${b + 1}번 봉 · <b>${d}번 블럭</b>은 ${m.lens[d - 1]}글자 → “<b>${esc(w)}</b>” ✓${k === n ? `<br><b class="ok">${n}번 만에 완성!</b>` : ''}`;
+    }
+    $('#hexCap').innerHTML = cap;
+    $('#hexUsed').innerHTML = k ? `<small>말한 단어</small>${ex.moves.slice(0, k).map(x => `<span>${esc(x[2])}</span>`).join('')}` : '';
+    $('#hexNo').textContent = `${k} / ${n}`;
+    $('#hexPrev').disabled = k === 0; $('#hexNext').textContent = k === n ? '처음부터 ↺' : '다음 ▶';
+  };
+  $('#hexPrev').onclick = () => { if (k > 0) { k--; draw(); } };
+  $('#hexNext').onclick = () => { k = k === n ? 0 : k + 1; draw(); };
+  draw();
+}
 const PLAY = {
   answer(t) { $('#af').onsubmit = e => { e.preventDefault(); judge(t, $('#ans').value); }; },
   chosung(t) { $('#af').onsubmit = e => { e.preventDefault(); judge(t, $('#ans').value); }; },
