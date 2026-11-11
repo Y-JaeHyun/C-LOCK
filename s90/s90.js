@@ -15,7 +15,7 @@ const ITEMS = {
   reality: { icon: '🔴', name: '리얼리티 스톤', start: 1, desc: '미션의 정확한 룰과 문제를 미리 열람한 뒤 30초 안에 도전 여부를 결정합니다.' },
   space:   { icon: '🔷', name: '스페이스 스톤', from: 1, desc: '도전 실패 결과를 확인한 직후 사용하면 실패를 무효로 하고 해당 스테이지를 패스 처리합니다.' },
   mind:    { icon: '🟡', name: '마인드 스톤', from: 2, desc: 'Normal Stage 도전 이전에 사용을 선언하면, 성공 시 보상을 +1 Level 대신 +1 HP로 받습니다.' },
-  power:   { icon: '🟣', name: '파워 스톤', from: 3, desc: '도전 시작 전 사용을 선언하면 해당 미션의 제한 시간이 무제한이 됩니다.' },
+  power:   { icon: '🟣', name: '파워 스톤', from: 3, desc: '도전 시작 전 사용을 선언하면 해당 미션에 걸려 있는 제한 시간이 무제한이 됩니다. (제한 시간이 있는 Normal 미션만)' },
   time:    { icon: '🟢', name: '타임 스톤', from: 4, desc: '도전에 실패했을 때 시간을 되돌려 같은 문제로 최대 2번까지 재도전합니다.' },
   soul:    { icon: '🟠', name: '소울 스톤', from: 5, desc: '언제든 HP 1과 Level 2를 원하는 방향으로 교환합니다.' },
   chronos: { icon: '⏳', name: '크로노스의 눈', from: 6, desc: 'Level 및 순위 2명을 확인합니다. 7단계 보스에 실패해도 아이템을 획득합니다.' },
@@ -189,7 +189,9 @@ BIND.order = () => {
 };
 
 /* ---- brief: type, level, short description, then 도전 / 패스 / items */
-let declare = { shield: false, mind: false };
+let declare = { shield: false, mind: false, power: false };
+const timed = m => !!(m.time || m.turnTime);
+const powered = () => !!(S.cur && S.cur.power);
 SCREENS.brief = () => {
   const t = curType(), m = mission(t), boss = t === BOSS, w = week();
   const passLeft = PASS_PER_STAGE - w.passes;
@@ -198,11 +200,12 @@ SCREENS.brief = () => {
     <div class="lv">Lv.${m.lv}${m.name ? ' · ' + esc(m.name) : ''}</div>
     <p class="desc">${esc(m.brief)}</p>
     <div class="chips">${m.rules.map(r => `<span>${esc(r)}</span>`).join('')}</div>
-    ${m.kind === 'hanoi' && m.example ? hanoiExampleHTML(m) : ''}
+    ${m.kind === 'hanoi' && m.example ? hanoiExampleHTML(m) : ''}${m.kind === 'equation' && m.example ? equationExampleHTML(m) : ''}
     ${boss ? `<p class="hint">성공하면 +1 Level · +1 HP · ${ITEMS[STAGES[S.stage].bossReward].icon} ${ITEMS[STAGES[S.stage].bossReward].name} 획득, 실패하면 −1 Level · −1 HP</p>` : `
     <div class="toggles">
       <button class="toggle" type="button" id="tShield" aria-pressed="${declare.shield}" ${S.items.shield ? '' : 'disabled'}>🛡️ 방패 사용 선언 <small>(${S.items.shield})</small></button>
       ${S.items.mind ? `<button class="toggle" type="button" id="tMind" aria-pressed="${declare.mind}">🟡 마인드 스톤 (성공 시 +1 HP) <small>(${S.items.mind})</small></button>` : ''}
+      ${powerToggle(m)}
       <button class="toggle" type="button" id="tReality" ${S.items.reality ? '' : 'disabled'}>🔴 리얼리티 스톤으로 미리 보기 <small>(${S.items.reality})</small></button>
     </div>`}
     <div class="btns"><button class="btn go big" type="button" id="bgo">도전</button>
@@ -217,9 +220,9 @@ BIND.brief = () => {
   $('#bpass').onclick = () => doPass(t);
   $('#reorder').onclick = () => go('order');
   $('#tShield').onclick = e => { declare.shield = !declare.shield; e.currentTarget.setAttribute('aria-pressed', declare.shield); };
-  bindMind();
+  bindMind(); bindPower();
   $('#tReality').onclick = () => modal(`<h3>🔴 리얼리티 스톤을 쓸까요?</h3><p>${esc(t)} 미션의 문제를 미리 열람하고, 30초 안에 도전할지 패스할지 정합니다. (남은 ${S.items.reality}개)</p><div class="btns"><button class="btn go" data-act="yes" type="button">사용</button><button class="btn ghost" data-act="close" type="button">취소</button></div>`,
-    { yes: () => { S.items.reality--; S.cur = { type: t, reality: true }; log(`${t}: 리얼리티 스톤`); save(); go('reality'); } });
+    { yes: () => { const m = mission(t); S.items.reality--; S.cur = { type: t, reality: true, pick: m.rounds ? rand(m.rounds.length) : null }; log(`${t}: 리얼리티 스톤`); save(); go('reality'); } });
 };
 function bindMind() {
   const b = $('#tMind'); if (!b) return;
@@ -228,9 +231,14 @@ function bindMind() {
     declare.mind = !declare.mind; b.setAttribute('aria-pressed', declare.mind);
   };
 }
+const powerToggle = m => S.items.power ? `<button class="toggle" type="button" id="tPower" aria-pressed="${declare.power && timed(m)}" ${timed(m) ? '' : 'disabled'}>🟣 파워 스톤 (제한 시간 무제한)${timed(m) ? '' : ' · 시간 제한 없는 미션'} <small>(${S.items.power})</small></button>` : '';
+function bindPower() {
+  const b = $('#tPower'); if (!b) return;
+  b.onclick = () => { declare.power = !declare.power; b.setAttribute('aria-pressed', declare.power); };
+}
 function doPass(t) {
   const w = week(); if (w.passes >= PASS_PER_STAGE || t === BOSS) return;
-  w.passes++; S.stats.passes++; declare = { shield: false, mind: false }; record(t, 'pass', 0); log(`${t}: 패스`);
+  w.passes++; S.stats.passes++; declare = { shield: false, mind: false, power: false }; record(t, 'pass', 0); log(`${t}: 패스`);
   go('result', { t, r: 'pass' });
 }
 
@@ -241,13 +249,13 @@ SCREENS.reality = () => {
     <div class="card qcard"><div class="tag">🔴 리얼리티 스톤 · ${t} Lv.${m.lv} 미리 보기</div>${preview(t, m)}
       <div class="chips">${m.rules.map(r => `<span>${esc(r)}</span>`).join('')}</div></div>
     <div class="card brief" style="margin-top:14px;padding:18px"><p class="desc" style="margin:0">30초 안에 결정하세요. 시간이 지나면 바로 도전합니다.</p>
-      <div class="toggles"><button class="toggle" type="button" id="tShield" aria-pressed="${declare.shield}" ${S.items.shield ? '' : 'disabled'}>🛡️ 방패 사용 선언 <small>(${S.items.shield})</small></button>${S.items.mind ? `<button class="toggle" type="button" id="tMind" aria-pressed="${declare.mind}">🟡 마인드 스톤 (성공 시 +1 HP) <small>(${S.items.mind})</small></button>` : ''}</div>
+      <div class="toggles"><button class="toggle" type="button" id="tShield" aria-pressed="${declare.shield}" ${S.items.shield ? '' : 'disabled'}>🛡️ 방패 사용 선언 <small>(${S.items.shield})</small></button>${S.items.mind ? `<button class="toggle" type="button" id="tMind" aria-pressed="${declare.mind}">🟡 마인드 스톤 (성공 시 +1 HP) <small>(${S.items.mind})</small></button>` : ''}${powerToggle(m)}</div>
       <div class="btns"><button class="btn go big" type="button" id="bgo">도전</button><button class="btn big" type="button" id="bpass" ${passLeft > 0 ? '' : 'disabled'}>패스 <small>남은 ${passLeft}회</small></button></div></div>`;
 };
 BIND.reality = () => {
   const t = curType();
   $('#tShield').onclick = e => { declare.shield = !declare.shield; e.currentTarget.setAttribute('aria-pressed', declare.shield); };
-  bindMind();
+  bindMind(); bindPower();
   $('#bgo').onclick = () => challenge(t);
   $('#bpass').onclick = () => { S.cur = null; doPass(t); };
   runTimer(30, () => challenge(t));
@@ -261,6 +269,8 @@ function preview(t, m) {
     case 'board': return boardHTML(m, true);
     case 'dice': return `<p class="q big">1~6 중 숫자 ${m.pick}개를 고른 뒤 주사위 1개를 굴립니다</p>`;
     case 'baskin': return `<p class="q big">베스킨라빈스 31 · 캡틴이 먼저, 당신은 후공 · 한 번에 1~4개</p>`;
+    case 'coin': return `<p class="q big">동전 ${m.flips}번의 앞·뒷면을 예측한 뒤 던집니다 · ${m.need}번 이상 맞히면 성공</p>`;
+    case 'endword': { const r = m.rounds[(S.cur && S.cur.pick) || 0]; return `<p class="q">캡틴이 말할 단어</p><div class="cap-word"><b>${esc(r.word)}</b></div><p class="q">「${esc([...r.word][0])}」(으)로 끝나는 단어를 말하면 성공</p>`; }
     case 'hanoi': return `<p class="q">주제 <b>${esc(m.theme)}</b> · ${m.lens.map((n, i) => `${i + 1}번 = ${n}글자`).join(' · ')} · ${m.goal + 1}번째 봉으로</p>${hanoiHTML(m, [[], [], []].map((_, i) => i === m.start ? m.lens.map((_, k) => m.lens.length - k) : []), -1)}`;
     default: return m.html;
   }
@@ -268,11 +278,15 @@ function preview(t, m) {
 
 /* ---- challenge: lock in declarations, count down, then the mission */
 function challenge(t) {
-  const boss = t === BOSS;
-  S.cur = { type: t, shield: !boss && declare.shield && S.items.shield > 0, mind: !boss && declare.mind && S.items.mind > 0, live: true };
+  const boss = t === BOSS, m = mission(t);
+  /* a word-pick drawn for a reality-stone preview stays the same for the real attempt */
+  const pick = S.cur && S.cur.type === t && S.cur.pick != null ? S.cur.pick : (m.rounds ? rand(m.rounds.length) : null);
+  S.cur = { type: t, shield: !boss && declare.shield && S.items.shield > 0, mind: !boss && declare.mind && S.items.mind > 0,
+    power: !boss && declare.power && S.items.power > 0 && timed(m), pick, live: true };
   if (S.cur.shield) { S.items.shield--; log(`${t}: 방패 선언`); }
   if (S.cur.mind) { S.items.mind--; log(`${t}: 마인드 스톤 선언`); }
-  declare = { shield: false, mind: false };
+  if (S.cur.power) { S.items.power--; log(`${t}: 파워 스톤 선언`); }
+  declare = { shield: false, mind: false, power: false };
   save(); go('count', t);
 }
 SCREENS.count = () => `<div class="count" aria-live="assertive"><b id="cn">3</b></div>`;
@@ -290,13 +304,14 @@ BIND.count = t => {
 let finished = false;
 SCREENS.play = t => {
   const m = mission(t);
-  const tt = m.time || m.turnTime;
+  const tt = powered() ? 0 : m.time || m.turnTime;
   const head = `<div class="timer ${tt ? '' : 'inf'}" id="tm"><div class="bar"><i></i></div><div class="sec">${tt || '∞'}</div></div>`;
-  const tag = `<div class="tag">${S.stage}단계 · ${t} Lv.${m.lv}${S.cur && S.cur.shield ? ' · 🛡️ 방패' : ''}${S.cur && S.cur.mind ? ' · 🟡 마인드' : ''}</div>`;
+  const tag = `<div class="tag">${S.stage}단계 · ${t} Lv.${m.lv}${S.cur && S.cur.shield ? ' · 🛡️ 방패' : ''}${S.cur && S.cur.mind ? ' · 🟡 마인드' : ''}${powered() ? ' · 🟣 파워 (시간 무제한)' : ''}</div>`;
   switch (m.kind) {
     case 'roulette': return `${head}<div class="card qcard">${tag}<p class="q big">룰렛을 돌리세요</p>${wheelSVG(m)}<div class="btns" style="justify-content:center"><button class="btn go big" type="button" id="spin">돌리기</button></div></div>`;
     case 'typing': return `${head}<div class="card qcard typing">${tag}<p class="q">아래 문장을 그대로 입력하세요</p><div class="target" id="tgt">${esc(m.text)}</div>
-      <textarea id="ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="입력"></textarea><p class="hint">붙여넣기는 막혀 있습니다. 똑같이 치면 바로 성공합니다.</p></div>`;
+      <textarea id="ans" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="입력"></textarea>
+      ${m.once ? '<div class="btns" style="justify-content:center"><button class="btn go" type="button" id="tsub">제출</button></div><p class="hint">붙여넣기는 막혀 있습니다. 다 쳤으면 제출(또는 Enter) · 틀린 채로 내면 실패입니다.</p>' : '<p class="hint">붙여넣기는 막혀 있습니다. 똑같이 치면 바로 성공합니다.</p>'}</div>`;
     case 'chosung': return `${head}<div class="card qcard">${tag}<p class="q">초성을 보고 단어를 만드세요</p><div class="cho">${esc(m.chosung)}</div>${answerBox('단어', '제출')}<p class="hint">한 번만 제출할 수 있습니다. ${esc(m.dict || '국어사전')}에 있는 단어만 정답입니다.</p></div>`;
     case 'order': return `${head}<div class="card qcard">${tag}${m.html}<div class="pick" id="pick">${m.items.map((x, i) => `<button type="button" data-i="${i}">${esc(x)}</button>`).join('')}</div>
       <div class="picked" id="picked"><span class="ph">순서대로 누르세요</span></div><div class="btns" style="justify-content:center"><button class="btn" type="button" id="oclr">다시 고르기</button><button class="btn go" type="button" id="osub" disabled>제출</button></div><p class="hint">한 번만 제출할 수 있습니다. 검색해도 됩니다.</p></div>`;
@@ -318,6 +333,19 @@ SCREENS.play = t => {
       <form class="answer" id="af" autocomplete="off" hidden><input id="ans" aria-label="단어" enterkeyhint="done"><button class="btn go" type="submit">옮기기</button><button class="btn ghost" type="button" id="hcancel">취소</button></form>
       <p class="hint" id="hmsg">옮길 블럭이 있는 봉을 누르세요.</p>
       <div class="found" id="used"></div></div>`;
+    case 'coin': return `${head}<div class="card qcard">${tag}<p class="q big">동전 ${m.flips}번의 앞·뒷면을 예측하세요</p>
+      <div class="coins" id="coins">${Array.from({ length: m.flips }, (_, i) => `<div class="cslot"><small>${i + 1}회</small><div class="coin" id="c${i}"><span>?</span></div>
+        <div class="seg" data-i="${i}"><button type="button" data-v="H" aria-pressed="false">앞</button><button type="button" data-v="T" aria-pressed="false">뒤</button></div></div>`).join('')}</div>
+      <div class="btns" style="justify-content:center"><button class="btn go big" type="button" id="toss" disabled>던지기 <small id="cleft">${m.flips}개 더 예측하세요</small></button></div>
+      <p class="hint">${m.flips}번 중 ${m.need}번 이상 맞히면 성공</p></div>`;
+    case 'endword': { const r = m.rounds[(S.cur && S.cur.pick) || 0];
+      return `${head}<div class="card qcard">${tag}<p class="q">캡틴이 말한 단어의 <b>첫 글자로 끝나는</b> 단어를 말하세요</p>
+      <div class="cap-word"><small>캡틴</small><b>${esc(r.word)}</b></div>${answerBox(`「${[...r.word][0]}」(으)로 끝나는 단어`, '말하기')}
+      <p class="hint">${esc(m.dict || '국어사전')}에 있는 단어만 인정 · 틀리면 시간 안에 다시 말할 수 있습니다.</p></div>`; }
+    case 'equation': return `${head}<div class="card qcard">${tag}<p class="q">퍼즐 속 숫자로 <b class="tgt">${m.target}</b>을(를) 만드세요 · 같은 색깔 = 같은 숫자</p>
+      <div class="puz" id="puz"><img src="${esc(m.image)}" alt="흩어진 퍼즐 조각. 빨강·청록·보라·검정 숫자 조각이 섞여 있다"></div><p class="hint">사진을 누르면 크게 볼 수 있습니다.</p>
+      ${answerBox('예: (1 + 2) × 3', '제출')}<div class="eq-now" id="eqNow">&nbsp;</div>
+      <div class="keys" id="keys">${['7', '8', '9', '+', '(', '4', '5', '6', '−', ')', '1', '2', '3', '×', '⌫', '0', '÷', 'C'].map(k => `<button class="btn" type="button" data-k="${k}">${k}</button>`).join('')}</div></div>`;
     default: return `${head}<div class="card qcard">${tag}${m.html}${answerBox(m.placeholder || '정답', '제출')}${m.once ? '<p class="hint">한 번 틀리면 실패입니다.</p>' : ''}</div>`;
   }
 };
@@ -326,10 +354,11 @@ const boardHTML = (m, isStatic) => `<div class="board ${isStatic ? 'static' : ''
 
 BIND.play = t => {
   const m = mission(t); finished = false;
-  if (m.time) runTimer(m.time, () => {
+  if (m.time && !powered()) runTimer(m.time, () => {
     /* time's up: a typed but unsent answer still counts as the one submission */
     const inp = $('#ans');
     if (inp && inp.value.trim() && (m.kind === 'answer' || m.kind === 'chosung')) return judge(t, inp.value, true);
+    if (inp && inp.value.trim() && m.kind === 'endword' && endwordOK(m, inp.value) === true) return end(t, 'success', `시간 종료 직전 「${norm(inp.value)}」`);
     end(t, 'fail', '시간 초과');
   });
   const inp = $('#ans'); if (inp) setTimeout(() => inp.focus(), 50);
@@ -350,6 +379,13 @@ function hanoiExampleHTML(m) {
     <div class="ex-nav"><button class="btn ghost" type="button" id="hexPrev">◀ 이전</button><span id="hexNo"></span><button class="btn" type="button" id="hexNext">다음 ▶</button></div>
     <div class="ex-how"><b>조작</b> 옮길 블럭이 있는 봉 누르기 → 놓을 봉 누르기 → 단어 입력 후 ‘옮기기’</div>
     <div class="ex-no"><b>이러면 안 옮겨져요</b> (실패는 아니고, 시간 안에 다시 하면 됩니다)<ul>${ex.wrong.map(([a, b]) => `<li><span>✕ ${esc(a)}</span><small>${esc(b)}</small></li>`).join('')}</ul></div></div>`;
+}
+function equationExampleHTML(m) {
+  const ex = m.example;
+  return `<div class="ex"><div class="ex-h">예시 · 목표 숫자 <b>${ex.target}</b></div>
+    <div class="puz static"><img src="${esc(ex.image)}" alt="예시 퍼즐 조각: 빨강 13, 청록 5, 보라 9, 검정 3이 흩어져 있다"></div>
+    <p class="ex-cap">조각을 맞춰 보면 <b>${esc(ex.numbers)}</b><br>정답 예: <b>${esc(ex.answer)} = ${ex.target}</b></p>
+    <div class="ex-how"><b>방법</b> 조각에 숨은 숫자를 찾아 + − × ÷ 와 괄호로 목표 숫자를 만든 뒤 제출합니다. 계산이 맞지 않으면 시간 안에 다시 낼 수 있어요.</div></div>`;
 }
 function bindHanoiExample(m) {
   const ex = m.example, n = ex.moves.length; let k = 0;
@@ -379,7 +415,9 @@ const PLAY = {
     const inp = $('#ans'), tgt = $('#tgt'), want = m.text.replace(/\s+/g, ' ').trim();
     inp.addEventListener('paste', e => { e.preventDefault(); toast('붙여넣기는 사용할 수 없습니다.'); });
     inp.addEventListener('drop', e => e.preventDefault());
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); });
+    const submit = () => { if (finished) return; const got = inp.value.replace(/\s+/g, ' ').trim(); if (!got) return; end(t, got === want ? 'success' : 'fail', got === want ? '' : `제출한 문장: ${got}`); };
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); if (m.once) submit(); } });
+    if (m.once) $('#tsub').onclick = submit;
     inp.addEventListener('input', () => {
       const got = inp.value.replace(/\s+/g, ' ').replace(/^ /, '');
       let html = '';
@@ -453,7 +491,7 @@ const PLAY = {
       if (finished) return;
       $('#bkTurn').textContent = '내 차례 · 몇 개를 부를까요?';
       $('#bkBtns').innerHTML = [1, 2, 3, 4].filter(k => n + k <= m.lose).map(k => `<button class="btn" type="button" data-k="${k}">${Array.from({ length: k }, (_, i) => n + 1 + i).join(' ')}</button>`).join('');
-      runTimer(m.turnTime, () => end(t, 'fail', `시간 초과 · 마지막 숫자 ${n}`));
+      if (!powered()) runTimer(m.turnTime, () => end(t, 'fail', `시간 초과 · 마지막 숫자 ${n}`));
     };
     const capTurn = () => {
       if (finished) return;
@@ -510,6 +548,70 @@ const PLAY = {
     };
     draw();
   },
+  coin(t, m) {
+    const pred = Array(m.flips).fill(null);
+    $('#coins').onclick = e => {
+      const b = e.target.closest('.seg button'); if (!b || b.disabled) return; const i = +b.closest('.seg').dataset.i;
+      pred[i] = b.dataset.v;
+      b.parentNode.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+      const left = pred.filter(x => !x).length; $('#toss').disabled = left > 0;
+      $('#cleft').textContent = left ? `${left}개 더 예측하세요` : `예측: ${pred.map(x => x === 'H' ? '앞' : '뒤').join('')}`;
+    };
+    $('#toss').onclick = e => {
+      e.currentTarget.disabled = true; document.querySelectorAll('.seg button').forEach(x => { x.disabled = true; });
+      const res = pred.map(() => rand(2) ? 'H' : 'T'), fast = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let i = 0, hits = 0;
+      const next = () => {
+        if (finished) return;
+        if (i >= m.flips) {
+          const win = hits >= m.need, say = v => v === 'H' ? '앞' : '뒤';
+          return setTimeout(() => end(t, win ? 'success' : 'fail', `${hits}번 맞힘 · 예측 ${pred.map(say).join('')} / 결과 ${res.map(say).join('')}`), 600);
+        }
+        const c = $('#c' + i), k = i; c.classList.add('flip');
+        setTimeout(() => {
+          if (finished) return;
+          const ok = res[k] === pred[k]; if (ok) hits++;
+          c.classList.remove('flip'); c.classList.add(res[k] === 'H' ? 'head' : 'tail', ok ? 'hit' : 'miss');
+          c.innerHTML = `<span>${res[k] === 'H' ? '앞' : '뒤'}</span><i>${ok ? '✓' : '✗'}</i>`;
+          i++; setTimeout(next, fast ? 150 : 350);
+        }, fast ? 150 : 900);
+      };
+      next();
+    };
+  },
+  endword(t, m) {
+    $('#af').onsubmit = e => {
+      e.preventDefault(); if (finished) return;
+      const inp = $('#ans'), r = endwordOK(m, inp.value);
+      if (r === true) return end(t, 'success', `캡틴 「${m.rounds[S.cur.pick || 0].word}」 → 「${norm(inp.value)}」`);
+      if (!r) return;
+      toast(r); const f = $('#af'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake'); inp.select();
+    };
+  },
+  equation(t, m) {
+    const inp = $('#ans'), now = $('#eqNow');
+    if (matchMedia('(pointer: coarse)').matches) inp.setAttribute('inputmode', 'none'); /* phones: the keypad below replaces the system keyboard */
+    const show = () => { const v = evalExpr(inp.value); now.textContent = v.ok ? `= ${fmtNum(v.value)}` : inp.value.trim() ? '…' : '\u00a0'; };
+    inp.addEventListener('input', show);
+    $('#keys').onclick = e => {
+      const b = e.target.closest('[data-k]'); if (!b) return; const k = b.dataset.k;
+      if (k === 'C') inp.value = ''; else if (k === '⌫') inp.value = inp.value.replace(/\s*\S\s*$/, ''); else inp.value += /[0-9]/.test(k) ? k : ` ${k} `;
+      inp.value = inp.value.replace(/\s+/g, ' ').replace(/^ /, ''); show();
+    };
+    $('#puz').onclick = () => $('#puz').classList.toggle('zoom');
+    $('#af').onsubmit = e => {
+      e.preventDefault(); if (finished) return;
+      const v = evalExpr(inp.value), bad = s => { toast(s); const f = $('#af'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake'); };
+      if (!inp.value.trim()) return;
+      if (!v.ok) return bad('수식을 읽을 수 없습니다. 숫자와 + − × ÷ ( )만 쓰세요.');
+      if (m.numbers) {
+        const a = v.nums.slice().sort((x, y) => x - y).join(','), b = m.numbers.slice().sort((x, y) => x - y).join(',');
+        if (a !== b) return bad('퍼즐 속 숫자를 정확히 한 번씩 써야 합니다.');
+      }
+      if (Math.abs(v.value - m.target) > 1e-9) return bad(`계산 결과가 ${fmtNum(v.value)}입니다. ${m.target}이(가) 되어야 합니다.`);
+      end(t, 'success', `${inp.value.trim()} = ${m.target}`);
+    };
+  },
   board(t, m) {
     const inp = $('#ans'), found = [], sel = [];
     const words = new Set(m.words);
@@ -546,6 +648,37 @@ function judge(t, raw, timeout) {
   end(t, ok ? 'success' : 'fail', ok ? '' : `${timeout ? '시간 초과 · ' : ''}제출한 답: ${raw}`);
 }
 
+/* 앞말로 끝내기: true when accepted, otherwise the reason to show (empty input → '') */
+function endwordOK(m, raw) {
+  const r = m.rounds[(S.cur && S.cur.pick) || 0], w = norm(raw), first = [...r.word][0];
+  if (!w) return '';
+  if (!/^[가-힣]+$/.test(w)) return '한글 단어로 말하세요.';
+  if ([...w].length < 2) return '두 글자 이상이어야 합니다.';
+  if ([...w].pop() !== first) return `「${first}」(으)로 끝나는 단어여야 합니다.`;
+  if (w === r.word) return '캡틴이 말한 단어는 쓸 수 없습니다.';
+  if (!r.words.includes(w)) return `「${w}」은(는) ${m.dict || '국어사전'}에 없습니다.`;
+  return true;
+}
+/* tiny arithmetic parser (no eval): numbers, + − × ÷ (also - * / x), parentheses, unary minus */
+function evalExpr(src) {
+  const s = String(src).replace(/[−–]/g, '-').replace(/[×xX*]/g, '*').replace(/[÷/]/g, '/').replace(/\s+/g, '');
+  const nums = []; let i = 0;
+  const peek = () => s[i];
+  function num() {
+    const mt = /^\d+(\.\d+)?/.exec(s.slice(i)); if (!mt) throw 0;
+    i += mt[0].length; nums.push(+mt[0]); return +mt[0];
+  }
+  function atom() {
+    if (peek() === '(') { i++; const v = expr(); if (peek() !== ')') throw 0; i++; return v; }
+    if (peek() === '-') { i++; return -atom(); }
+    return num();
+  }
+  function term() { let v = atom(); while (peek() === '*' || peek() === '/') { const o = s[i++], r = atom(); if (o === '/' && r === 0) throw 0; v = o === '*' ? v * r : v / r; } return v; }
+  function expr() { let v = term(); while (peek() === '+' || peek() === '-') { const o = s[i++], r = term(); v = o === '+' ? v + r : v - r; } return v; }
+  try { if (!s) throw 0; const v = expr(); if (i !== s.length || !isFinite(v)) throw 0; return { ok: true, value: v, nums }; } catch (e) { return { ok: false, nums }; }
+}
+const fmtNum = v => Number.isInteger(v) ? String(v) : String(Math.round(v * 1000) / 1000);
+
 /* timer: requestAnimationFrame for the bar, setTimeout for the deadline (keeps working in a background tab) */
 function runTimer(sec, onEnd) {
   const tm = $('#tm'); if (!tm) return;
@@ -563,7 +696,7 @@ function runTimer(sec, onEnd) {
 function record(t, r, delta) { week().results[t] = { r, delta, at: Date.now() }; S.cur = null; S.idx = seq().findIndex(x => !week().results[x]); if (S.idx < 0) S.idx = 10; save(); }
 function end(t, outcome, why) {
   if (finished) return; finished = true; stopTimer();
-  const boss = t === BOSS, shield = S.cur && S.cur.shield, mind = S.cur && S.cur.mind;
+  const boss = t === BOSS, shield = S.cur && S.cur.shield, mind = S.cur && S.cur.mind, pick = S.cur ? S.cur.pick : null;
   let r = outcome, delta = 0;
   if (outcome === 'success' && mind && !boss) { heal(1, `${t} 성공 · 마인드 스톤`); S.stats.normalWin++; }
   else if (outcome === 'success') {
@@ -578,6 +711,7 @@ function end(t, outcome, why) {
   log(`${t}: ${R_LABEL[r]}${why ? ' · ' + why : ''}`);
   record(t, r, delta);
   if (mind && r === 'success') week().results[t].mind = true;
+  if (pick != null) week().results[t].pick = pick;
   save();
   go('result', { t, r, why });
 }
@@ -591,6 +725,7 @@ SCREENS.result = ({ t, r, why }) => {
   if ((r === 'fail' || r === 'shield' || r === 'space') && m.reveal) reveal = `<div class="reveal">정답 <b>${esc(m.reveal)}</b></div>`;
   if ((r === 'fail' || r === 'shield' || r === 'space') && m.kind === 'chosung') reveal = `<div class="reveal">인정 단어 예 <b>${esc(m.words.filter((_, i) => i % 5 === 0).slice(0, 4).join(', '))}</b> 외 ${m.words.length - 4}개</div>`;
   if ((r === 'fail' || r === 'shield' || r === 'space') && m.kind === 'board') reveal = `<div class="reveal">가능한 단어 예 <b>${esc((m.examples || m.words.slice(0, 4)).join(', '))}</b> 외 ${m.words.length - 4}개</div>`;
+  if ((r === 'fail' || r === 'shield' || r === 'space') && m.kind === 'endword') { const rd = m.rounds[(wr && wr.pick) || 0], ex = ['배우', '경우', '나무', '업무', '장소', '청소', '사고', '창고', '가수', '박수'].filter(w => rd.words.includes(w)); reveal = `<div class="reveal">「${esc(rd.word)}」 → 인정 단어 예 <b>${esc(ex.concat(rd.words.slice(0, 3 - Math.min(ex.length, 3))).slice(0, 3).join(', '))}</b> 외 ${rd.words.length - 3}개</div>`; }
   if ((r === 'fail' || r === 'shield' || r === 'space') && m.kind === 'hanoi') reveal = `<div class="reveal">${m.lens.map((n, i) => `${i + 1}번(${n}글자) 예 <b>${esc(m.words.filter(w => [...w].length === n).slice(0, 3).join(', '))}</b>`).join('<br>')}</div>`;
   const reward = boss && r === 'success' ? (() => { const k = STAGES[S.stage].bossReward; return `<p class="note">${ITEMS[k].icon} <b>${ITEMS[k].name}</b> 획득 — ${esc(ITEMS[k].desc)}</p>`; })() : '';
   const last = S.idx >= 10;
