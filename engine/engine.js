@@ -41,6 +41,7 @@ document.body.insertAdjacentHTML('beforeend', `
 <div id="cine" aria-hidden="true"><div class="bar top"></div><div class="bar bot"></div><p id="caption" aria-live="polite"></p><span class="skip">클릭 또는 Space로 건너뛰기</span></div>
 <div id="modal" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div id="lightbox" hidden><img alt=""></div>
+<div id="pins" aria-label="펼쳐 둔 단서"><div class="pinbar" id="pinbar" hidden><span id="pinCount"></span><button type="button" id="pinTile">나란히</button><button type="button" id="pinFold">모두 접기</button><button type="button" id="pinClear">모두 치우기</button></div></div>
 <section id="story" hidden>
   <canvas id="fw" aria-hidden="true"></canvas>
   <div class="sin">
@@ -328,7 +329,7 @@ function mediaHTML(items) {
 }
 const players = [];
 function stopMedia() { players.forEach(p => p.stop()); players.length = 0; }
-function wireMedia(root, items) {
+function wireMedia(root, items, list = players) {
   root.querySelectorAll('[data-zoom]').forEach(img => img.addEventListener('click', () => { const lb = $('#lightbox'); lb.querySelector('img').src = img.src; lb.querySelector('img').alt = img.alt; lb.hidden = false; }));
   root.querySelectorAll('.sound[data-media]').forEach(el => {
     const m = items[+el.dataset.media]; const au = new Audio(); au.preload = 'metadata'; au.src = m.src;
@@ -372,7 +373,7 @@ function wireMedia(root, items) {
       ccBtnText(); renderCC();
     });
     raf = requestAnimationFrame(tick);
-    players.push({ stop: () => { au.pause(); au.src = ''; cancelAnimationFrame(raf); } });
+    list.push({ stop: () => { au.pause(); au.src = ''; cancelAnimationFrame(raf); } });
   });
   root.querySelectorAll('.video[data-media]').forEach(el => {
     const m = items[+el.dataset.media]; const cover = el.querySelector('.yt-cover');
@@ -382,7 +383,7 @@ function wireMedia(root, items) {
       f.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen = true; f.title = m.title || '영상';
       cover.replaceWith(f);
     });
-    players.push({ stop: () => { el.querySelectorAll('iframe').forEach(f => f.remove()); } });
+    list.push({ stop: () => { el.querySelectorAll('iframe').forEach(f => f.remove()); } });
   });
 }
 $('#lightbox').addEventListener('click', () => { $('#lightbox').hidden = true; });
@@ -418,14 +419,14 @@ function closeModal(byClick = true) {
 $('#modal').addEventListener('pointerdown', e => { if (e.target.id === 'modal') closeModal(); });
 
 function markSeen(key) { if (!state.seen[key]) { state.seen[key] = true; updateHUD(); } }
-function clueSheet(eyebrow, c, sub, extra = '') {
-  return [`<div class="head"><span class="eyebrow">${eyebrow}</span><h2>${esc(c.title)}</h2>${sub ? `<span class="meta">${esc(sub)}</span>` : ''}</div><div class="cbody" style="display:flex;flex-direction:column;gap:14px">${clueBody(c)}</div>${extra}`, [['.cbody', c.media]]];
+function clueSheet(eyebrow, c, sub, extra = '', key = null) {
+  return [`<div class="head"><span class="eyebrow">${eyebrow}</span><h2>${esc(c.title)}</h2>${sub ? `<span class="meta">${esc(sub)}</span>` : ''}${key ? pinButton(key) : ''}</div><div class="cbody" style="display:flex;flex-direction:column;gap:14px">${clueBody(c)}</div>${extra}`, [['.cbody', c.media]]];
 }
 function openClue(id) {
   const c = CLUES[id]; markSeen(id);
   const entry = interactables.find(e => e.id === id); if (entry) setIcon(entry, hasSound(c) ? 'soundSeen' : 'seen');
-  const [html, media] = clueSheet('방 안 단서', c, c.where);
-  openModal(html, 'sheet', media);
+  const [html, media] = clueSheet('방 안 단서', c, c.where, '', id);
+  openModal(html, 'sheet', media); wirePinButtons(true);
 }
 function openPoster() {
   openModal(`<div class="head"><span class="eyebrow">테마 포스터</span><h2>${esc(T.title)}</h2><span class="meta">${T.week}주차 · ${esc(T.tag)}</span></div><img src="${esc(T.poster)}" alt="${esc(T.posterAlt || '')}" style="border-radius:8px;width:100%">`);
@@ -446,7 +447,7 @@ function openLock(id) {
   if (relOk) markSeen('r_' + L.related);
   const solved = !!state.solved[id];
   const R = L.related ? RELATED[L.related] : null;
-  const rel = relOk ? `<div class="section-label">연관 단서 · ${esc(R.title)}</div><div class="rbody" style="display:flex;flex-direction:column;gap:14px">${clueBody(R)}</div>`
+  const rel = relOk ? `<div class="section-label pinrow"><span>연관 단서 · ${esc(R.title)}</span>${pinButton('r_' + L.related)}</div><div class="rbody" style="display:flex;flex-direction:column;gap:14px">${clueBody(R)}</div>`
     : L.related ? `<div class="section-label">연관 단서</div><div class="sleeping">아직 잠들어 있습니다. 다른 자물쇠를 열면 깨어날지도 모릅니다.</div>`
     : `<div class="meta">이 자물쇠에는 연관 단서가 없습니다. 방 안 단서 하나만으로 풀 수 있습니다.</div>`;
   openModal(`
@@ -459,6 +460,7 @@ function openLock(id) {
       <div class="kbhint">${MECH_HINT[L.mech] || ''}</div>
     </div>`, 'lock', relOk && R.media ? [['.rbody', R.media]] : null);
   $('#sheet [data-close2]').addEventListener('click', closeModal);
+  wirePinButtons(false);
   const mech = $('#mech');
   ({ dial: buildDial, keypad: buildKeypad, dir: buildDir, text: buildText, form: buildForm }[L.mech] || buildDial)(mech, L, solved);
   if (lockUI) lockUI.L = L;
@@ -632,19 +634,126 @@ function notesPanel() {
   const blog = Object.keys(CLUES).filter(k => state.seen[k]);
   const rel = Object.keys(RELATED).filter(k => state.seen['r_' + k]);
   const nRel = LOCKS.filter(l => l.related).length;
-  const row = (key, title, sub, snd) => `<button class="item" type="button" data-open="${key}"><span class="no">·</span><span class="t"><span>${esc(title)}</span><small>${esc(sub)}</small></span><span class="chip">${snd ? '소리 · 보기' : '보기'}</span></button>`;
-  openModal(`<div class="head"><span class="eyebrow">단서 수첩</span><h2>모은 단서 ${blog.length + rel.length}개</h2><span class="meta">한 번 살펴본 단서는 여기서 다시 볼 수 있습니다.</span></div>
+  const row = (key, title, sub, snd) => `<div class="item pinitem"><button class="open" type="button" data-open="${key}"><span class="no">·</span><span class="t"><span>${esc(title)}</span><small>${esc(sub)}</small></span><span class="chip">${snd ? '소리 · 보기' : '보기'}</span></button>${pinButton(key, true)}</div>`;
+  openModal(`<div class="head"><span class="eyebrow">단서 수첩</span><h2>모은 단서 ${blog.length + rel.length}개</h2><span class="meta">한 번 살펴본 단서는 여기서 다시 볼 수 있습니다. 📌 펼쳐 두면 수첩을 닫고 돌아다니거나 자물쇠를 열 때도 화면에 남아, 여러 단서를 나란히 볼 수 있어요.</span></div>
     <div class="section-label">방 안 단서 (${blog.length}/${nClues()})</div>
     <div class="list">${blog.length ? blog.map(k => row(k, CLUES[k].title, CLUES[k].where, hasSound(CLUES[k]))).join('') : '<div class="empty">아직 살펴본 단서가 없습니다. 물음표나 스피커 표시가 뜬 물건을 조사하세요.</div>'}</div>
     <div class="section-label">자물쇠 연관 단서 (${rel.length}/${nRel})</div>
     <div class="list">${rel.length ? rel.map(k => { const L = LOCKS.find(l => l.related === k); return row('r_' + k, RELATED[k].title, `자물쇠 ${L.no} · ${L.name}`, hasSound(RELATED[k])); }).join('') : '<div class="empty">자물쇠를 조사하면 연관 단서가 여기에 모입니다.</div>'}</div>`);
   $('#sheet').querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.open, back = '<div class="actions"><button class="btn" type="button" id="backNotes">수첩으로</button></div>';
-    if (k.startsWith('r_')) { const key = k.slice(2), L = LOCKS.find(l => l.related === key); const [html, media] = clueSheet(`연관 단서 · 자물쇠 ${L.no}`, RELATED[key], L.name, back); openModal(html, 'sheet', media); }
-    else { const [html, media] = clueSheet('방 안 단서', CLUES[k], CLUES[k].where, back); openModal(html, 'sheet', media); }
+    if (k.startsWith('r_')) { const key = k.slice(2), L = LOCKS.find(l => l.related === key); const [html, media] = clueSheet(`연관 단서 · 자물쇠 ${L.no}`, RELATED[key], L.name, back, k); openModal(html, 'sheet', media); }
+    else { const [html, media] = clueSheet('방 안 단서', CLUES[k], CLUES[k].where, back, k); openModal(html, 'sheet', media); }
+    wirePinButtons(false);
     $('#backNotes').addEventListener('click', notesPanel);
   }));
+  wirePinButtons(false);
 }
+/* ------------------------------------------------------------------ pinned clues
+   Like carrying clue sheets around a real escape room: a pinned clue stays on screen as a small card while you walk,
+   open the notebook or work a lock. Cards drag by their title bar, fold to a strip, and can be tiled side by side. */
+const PIN_MAX = 6;
+const pins = [];   /* { key, el, players, folded } */
+function pinSrc(key) {
+  if (key.startsWith('r_')) { const k = key.slice(2), L = LOCKS.find(l => l.related === k); return { c: RELATED[k], sub: `연관 단서 · 자물쇠 ${L ? L.no : ''}` }; }
+  return { c: CLUES[key], sub: '방 안 단서' + (CLUES[key] && CLUES[key].where ? ` · ${CLUES[key].where}` : '') };
+}
+const isPinned = key => pins.some(p => p.key === key);
+function pinButton(key, small = false) {
+  const on = isPinned(key);
+  return `<button class="pinbtn ${small ? 'sm' : ''}" type="button" data-pin="${esc(key)}" aria-pressed="${on}" title="${on ? '펼친 단서에서 치우기' : '화면에 펼쳐 두기'}">📌<span>${on ? '펼쳐 둠' : '펼쳐 두기'}</span></button>`;
+}
+/* closeAfter: a room-clue sheet closes once pinned, so you are back in the room with the card beside you */
+function wirePinButtons(closeAfter) {
+  $('#sheet').querySelectorAll('[data-pin]').forEach(b => b.addEventListener('click', e => {
+    e.stopPropagation();
+    const key = b.dataset.pin;
+    if (isPinned(key)) unpin(key); else if (!pin(key)) return;
+    const on = isPinned(key); b.setAttribute('aria-pressed', on); b.querySelector('span').textContent = on ? '펼쳐 둠' : '펼쳐 두기';
+    if (on && closeAfter) closeModal();
+  }));
+}
+function pin(key) {
+  if (isPinned(key)) return true;
+  const src = pinSrc(key); if (!src.c) return false;
+  if (pins.length >= PIN_MAX) { toast(`단서는 ${PIN_MAX}개까지 펼쳐 둘 수 있습니다. 하나를 치우고 다시 시도하세요.`); return false; }
+  sfx.click();
+  const el = document.createElement('section'); el.className = 'pin'; el.setAttribute('aria-label', `펼쳐 둔 단서: ${src.c.title}`);
+  el.innerHTML = `<header><span class="pt"><small>${esc(src.sub)}</small>${esc(src.c.title)}</span><button type="button" class="pfold" aria-label="접기" title="접기">–</button><button type="button" class="px" aria-label="치우기" title="치우기">✕</button></header><div class="pbody">${clueBody(src.c)}</div>`;
+  $('#pins').appendChild(el);
+  const p = { key, el, players: [], folded: false };
+  wireMedia(el.querySelector('.pbody'), src.c.media, p.players);
+  el.querySelector('.px').addEventListener('click', () => unpin(key));
+  el.querySelector('.pfold').addEventListener('click', () => fold(p, !p.folded));
+  el.addEventListener('pointerdown', () => front(el));
+  dragPin(el);
+  pins.push(p);
+  placeNew(el);
+  pinBar();
+  toast(dragMode ? '단서를 펼쳐 두었습니다. 제목을 끌어 옮길 수 있어요.' : '단서를 펼쳐 두었습니다. Esc로 커서를 꺼내면 옮기거나 접을 수 있어요.', true);
+  return true;
+}
+function unpin(key) {
+  const i = pins.findIndex(p => p.key === key); if (i < 0) return;
+  const p = pins[i]; p.players.forEach(x => x.stop()); p.el.remove(); pins.splice(i, 1); pinBar();
+}
+function fold(p, on) { p.folded = on; p.el.classList.toggle('folded', on); const b = p.el.querySelector('.pfold'); b.textContent = on ? '+' : '–'; b.setAttribute('aria-label', on ? '펼치기' : '접기'); keepIn(p.el); }
+let pinZ = 1;
+function front(el) { el.style.zIndex = ++pinZ; }
+/* the toolbar sits under the HUD (and under the goal panel on a phone, where that panel spans the width); cards start below it */
+function barTop() {
+  const h = $('#hud'); let b = h.hidden ? 8 : h.getBoundingClientRect().bottom + 6;
+  const g = $('#goal'); if (innerWidth < 760 && !g.hidden) b = Math.max(b, g.getBoundingClientRect().bottom + 6);
+  return Math.round(b);
+}
+const pinTop = () => barTop() + 44;
+const pinW = () => Math.min(340, Math.round(innerWidth * (innerWidth < 760 ? 0.62 : 0.3)));
+function keepIn(el) {
+  const r = el.getBoundingClientRect(), top = pinTop();
+  let x = parseFloat(el.style.left) || 0, y = parseFloat(el.style.top) || 0;
+  x = Math.max(4 - r.width + 60, Math.min(innerWidth - 60, x)); y = Math.max(top - 4, Math.min(innerHeight - 40, y));
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+}
+/* new cards cascade down the right edge, clear of the goal panel on the left */
+function placeNew(el) {
+  const w = pinW(), k = pins.length - 1;
+  el.style.width = w + 'px';
+  el.style.left = Math.max(8, innerWidth - w - 16 - (k % 3) * 22) + 'px';
+  el.style.top = (pinTop() + (k % 4) * 52) + 'px';
+  front(el); keepIn(el);
+}
+function dragPin(el) {
+  const hd = el.querySelector('header'); let d = null;
+  hd.addEventListener('pointerdown', e => {
+    if (e.target.closest('button')) return;
+    d = { id: e.pointerId, x: e.clientX - el.offsetLeft, y: e.clientY - el.offsetTop }; hd.setPointerCapture(e.pointerId); el.classList.add('moving');
+  });
+  hd.addEventListener('pointermove', e => { if (!d || d.id !== e.pointerId) return; el.style.left = (e.clientX - d.x) + 'px'; el.style.top = (e.clientY - d.y) + 'px'; keepIn(el); });
+  const up = e => { if (!d || d.id !== e.pointerId) return; d = null; el.classList.remove('moving'); };
+  hd.addEventListener('pointerup', up); hd.addEventListener('pointercancel', up);
+}
+/* side by side: equal columns across the screen (two rows when more than three, or more than two on a phone) */
+function tilePins() {
+  const n = pins.length; if (!n) return;
+  const phone = innerWidth < 760, cols = phone ? Math.min(2, n) : Math.min(3, n), rows = Math.ceil(n / cols);
+  const top = pinTop(), gap = 8, bottom = isTouch ? 170 : 44;
+  const w = Math.floor((innerWidth - 16 - gap * (cols - 1)) / cols), h = Math.floor((innerHeight - top - bottom - gap * (rows - 1)) / rows);
+  pins.forEach((p, i) => {
+    fold(p, false);
+    p.el.style.width = w + 'px'; p.el.style.height = Math.max(120, h) + 'px';
+    p.el.style.left = (8 + (i % cols) * (w + gap)) + 'px'; p.el.style.top = (top + Math.floor(i / cols) * (h + gap)) + 'px';
+  });
+}
+function pinBar() {
+  const n = pins.length; $('#pinbar').hidden = !n;
+  $('#pinCount').textContent = `펼친 단서 ${n}`;
+  $('#pinbar').style.top = barTop() + 'px';
+}
+$('#pinTile').addEventListener('click', () => { sfx.click(); tilePins(); });
+$('#pinFold').addEventListener('click', () => { sfx.click(); const allFolded = pins.every(p => p.folded); pins.forEach(p => fold(p, !allFolded)); $('#pinFold').textContent = allFolded ? '모두 접기' : '모두 펼치기'; });
+$('#pinClear').addEventListener('click', () => { sfx.click(); pins.slice().forEach(p => unpin(p.key)); });
+addEventListener('resize', () => { pins.forEach(p => keepIn(p.el)); pinBar(); });
+
 function hintsPanel() {
   const left = HINT_LIMIT - state.hintsUsed;
   openModal(`<div class="head"><span class="eyebrow">힌트</span><h2>남은 힌트 ${left} / ${HINT_LIMIT}</h2><span class="meta">자물쇠마다 2단계 힌트가 있습니다. 1단계는 짝이 되는 단서를, 2단계는 푸는 방법을 알려 주며, 한 번 열 때마다 1개를 씁니다.</span></div>
@@ -1230,7 +1339,7 @@ function run(theme) {
   { const r = loadRecord(), el = $('#bestRec'); if (r && el) { el.hidden = false; el.textContent = `내 최고 기록 ${fmt(r.time)} · 등급 ${r.grade}`; } }
   updateHUD();
 
-  if (location.hash === '#debug') window.__bs = { state, api, colliders, blocked, get bounds() { return bounds; }, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, ZONES, aimPick, revealProp, startCut: id => startCut(LOCK_BY_ID[id]), skipCut, runStory, showEnding,
+  if (location.hash === '#debug') window.__bs = { state, api, pin, unpin, tilePins, pins, colliders, blocked, get bounds() { return bounds; }, openLock, openClue, notesPanel, hintsPanel, locksPanel, tryDoor, closeModal, submit: () => lockUI && submitLock(lockUI.L), interactables, ZONES, aimPick, revealProp, startCut: id => startCut(LOCK_BY_ID[id]), skipCut, runStory, showEnding,
     /* advance the simulation by hand (tests in a hidden tab, where requestAnimationFrame is paused) */
     tick: (sec = 1) => { for (let k = 0; k < sec * 30; k++) { const dt = 1 / 30; last += dt * 1000; if (state.started && !state.modal && !cut && !exitWalk) move(dt); animate(last / 1000, dt); if (cut) updateCut(dt); if (story) story.update(dt); fwUpdate(dt); if (exitWalk) updateExitWalk(dt); } },
     teleport:(x, z, yaw = 0, pitch) => { player.x = x; player.z = z; player.yaw = yaw; if (pitch !== undefined) player.pitch = pitch; } };

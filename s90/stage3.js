@@ -1,8 +1,7 @@
 /* Stage 90 — 3단계 문제. Source: the 3단계 problem cards (folder 3, KakaoTalk_Photo 001~030).
    Answers are salted hashes (S90.hash). 반응 (앞말로 끝내기) lists every 뉴에이스 국어사전 headword (2~5 Hangul syllables)
    that ends with the first syllable of the captain's word; the captain's word is drawn from five at random.
-   보스 (퍼즐 수식완성): the expression is checked against the target; `numbers` (the four colour numbers) is left out until
-   the puzzle's numbers are confirmed, so for now only the result is checked. */
+   보스 (퍼즐 수식완성): the expression must equal the target and use each colour number exactly once. */
 (window.S90_STAGES = window.S90_STAGES || {})[3] = {
   no: 3,
   bossReward: 'power',
@@ -65,7 +64,7 @@
       rules: ['제한 시간 30초', '1회 제출 시 종료', '검색 허용'],
       html: `<p class="q">2025년 한 해 동안 <b>한국인이 많이 방문한 국가</b> 순서대로 고르세요.</p>`,
       items: ['일본', '태국', '미국', '베트남'],
-      hash: 'i7wtht', reveal: '일본 → 베트남 → 태국 → 미국 (한국관광공사 2025 집계: 882만 · 457만 · 187만 · 170만 명)',
+      hash: '17qg6zd', reveal: '일본 → 베트남 → 미국 → 태국',
     },
     지식: {
       kind: 'answer', lv: 3, time: 10, once: true,
@@ -80,7 +79,8 @@
       rules: ['제한 시간 90초', '같은 색깔 = 같은 숫자', '틀리면 시간 안에 다시', '패스·아이템 사용 불가'],
       image: 'assets/s3-boss.png',
       example: { image: 'assets/s3-boss-example.png', target: 27, numbers: '빨강 13 · 청록 5 · 보라 9 · 검정 3', answer: '(13 + 5 − 9) × 3' },
-      /* numbers: [..] — the colour numbers, once confirmed. Without it only "= target" is checked. */
+      /* colour numbers (빨강 14 · 청록 27 · 보라 7 · 검정 9), each used exactly once; official answer 9 − (27 − 14 − 7) = 3 */
+      numbers: [9, 27, 14, 7], reveal: '9 − (27 − 14 − 7) = 3 · 빨강 14 · 청록 27 · 보라 7 · 검정 9',
     },
   },
 };
