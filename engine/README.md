@@ -1,6 +1,6 @@
 # Back Stage engine — theme contract
 
-One room per week lives in `site/wN/` and is three files plus assets:
+One room per week lives in `wN/` (repo root) and is three files plus assets:
 
 ```
 wN/index.html   doctype, fonts, ../engine/engine.css, a <style> for this theme, three.js r149, ../engine/engine.js, theme.js
@@ -81,8 +81,14 @@ furniture: `exitDoor({ x, z, ry, leaf, frame, sign })` puts the exit in a wall; 
 (`ry = 0` wall at +z, `Math.PI` wall at -z, `-Math.PI/2` wall at -x, `Math.PI/2` wall at +x). Needs ceiling ≥ 3.7.
 `poster({ x, y, z, ry, w, h })` hangs the theme poster (interactive).
 
+## Pinned clues (engine-owned)
+Every clue sheet, notebook row and lock-related clue has a 📌 펼쳐 두기 button. A pinned clue becomes a draggable card
+(`#pins`, z-index above the modal) that stays on screen while walking and while a lock is open; max 6, with a bar for
+나란히 (tile) / 모두 접기 / 모두 치우기. Themes need nothing for this. Debug: `__bs.pin(key)`, `__bs.unpin(key)`, `__bs.tilePins()`
+(room clue key = clue id, related clue key = `'r_' + relatedKey`).
+
 ## Testing
-`python3 -m http.server 8765 --directory site` then open `http://localhost:8765/wN/index.html#debug`. With `#debug`,
+`python3 -m http.server 8765` (from the repo root) then open `http://localhost:8765/wN/index.html#debug`. With `#debug`,
 `window.__bs` (records are not saved in #debug) has `openLock(id)`, `openClue(id)`, `submit()`, `tick(seconds)` (advances the game when the tab is hidden),
 `tryDoor()`, `teleport(x, z, yaw, pitch)`, `state`, `api`. Typical check: start → skip prologue → open each lock, type the
 answer via `KeyboardEvent('keydown', { code: 'KeyA', key: 'A' })` (dial/keypad), arrow keys (dir) or set `.tinput` values
